@@ -308,7 +308,7 @@ def update_total_timer(n, start_time, off_time, on_time):
     start_time = start_time
 
     elapsed_time = off_time + on_time
-    time_left = 4380 - elapsed_time
+    time_left = 3600 - elapsed_time
 
     minutes = time_left // 60
     seconds = time_left % 60
@@ -371,9 +371,10 @@ def fetch_data(n, start_time):
     Output('avg-outside-t', 'children'),
     Input('outside-interval-component', 'n_intervals'))
 def avg_outside_temp(n):
-    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
+    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
     f = df['Temp'].iloc[-1]
-    print(f)
+    print(df.index)
+    print(df)
 
     return daq.LEDDisplay(
         # id='current-temp-LED',
