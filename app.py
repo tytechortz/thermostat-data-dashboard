@@ -10,11 +10,14 @@ import json
 import datetime
 import math
 import time
+import requests
 
 import pandas as pd
 on_time = []
 off_time= []
 on = []
+
+url = "http://10.0.1.7:8080"
 
 # c=1
 # print(on)
@@ -102,7 +105,7 @@ app.layout = html.Div([
         ),
         dcc.Interval(
             id='outside-interval-component',
-            interval=900000,
+            interval=60000,
             n_intervals=0
         ),
     ]),
@@ -369,6 +372,9 @@ def fetch_data(n, start_time):
     Output('outside-t', 'children'),
     Input('outside-interval-component', 'n_intervals'))
 def outside_temp(n):
+    res = requests.get(url)
+    data = res.json()
+    f = ((9.0/5.0) * data) + 32
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
     current_temp = df['Temp'].iloc[-1]
     print(current_temp)
@@ -376,7 +382,7 @@ def outside_temp(n):
     return daq.LEDDisplay(
         # id='current-temp-LED',
         label='Outside T',
-        value='{:,.2f}'.format(current_temp),
+        value='{:,.2f}'.format(f),
         color='red'
     ),
 
