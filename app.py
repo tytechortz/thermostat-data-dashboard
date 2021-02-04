@@ -372,9 +372,11 @@ def fetch_data(n, start_time):
     Input('outside-interval-component', 'n_intervals'))
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
-    f = df['Temp'].iloc[-1]
+    # f = df['Temp'].iloc[-1]
     print(df.index)
-    print(df)
+    # print(df)
+    daily_avg = df['Temp'].resample('D', how='mean')
+    print(daily_avg)
 
     return daq.LEDDisplay(
         # id='current-temp-LED',
