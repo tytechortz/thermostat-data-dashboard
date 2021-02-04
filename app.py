@@ -100,6 +100,11 @@ app.layout = html.Div([
             interval=1000,
             n_intervals=0
         ),
+        dcc.Interval(
+            id='outside-interval-component',
+            interval=900000,
+            n_intervals=0
+        ),
     ]),
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
@@ -362,7 +367,7 @@ def fetch_data(n, start_time):
 
 @app.callback(
     Output('outside-t', 'children'),
-    Input('interval-component', 'n_intervals'))
+    Input('outside-interval-component', 'n_intervals'))
 def outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
     current_temp = df['Temp'].iloc[-1]
