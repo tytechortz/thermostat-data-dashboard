@@ -83,12 +83,11 @@ app.layout = html.Div([
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(
-                        html.Button('Reset', id='reset-button', n_clicks=0),
-                    )
+                    html.Div(id='avg-outside-t'),
                 ],
                     className='three columns'
                 ),
+
             ],
                 className='twelve columns'
             ),
@@ -121,9 +120,8 @@ app.layout = html.Div([
 
 @app.callback(
     Output('start-time', 'children'),
-    [Input('start-button', 'n_clicks'),
-    Input('reset-button', 'n_clicks')])
-def time_output(sn, rn):
+    Input('start-button', 'n_clicks'))
+def time_output(sn):
     # print(sn)
 
 
@@ -367,6 +365,23 @@ def fetch_data(n, start_time):
     # print(df)
 
     return df.to_json(), change
+
+
+@app.callback(
+    Output('avg-outside-t', 'children'),
+    Input('outside-interval-component', 'n_intervals'))
+def avg_outside_temp(n):
+    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
+    f = df['Temp'].iloc[-1]
+    print(f)
+
+    return daq.LEDDisplay(
+        # id='current-temp-LED',
+        label='Outside  Avg T',
+        value='{:,.2f}'.format(f),
+        color='red'
+    ),
+
 
 @app.callback(
     Output('outside-t', 'children'),
