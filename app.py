@@ -371,7 +371,7 @@ def outside_temp(n):
     return daq.LEDDisplay(
         # id='current-temp-LED',
         label='Outside T',
-        value=current_temp,
+        value='{:,.2f}'.format(current_temp),
         color='red'
     ),
 
