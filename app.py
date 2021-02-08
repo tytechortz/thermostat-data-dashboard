@@ -11,11 +11,13 @@ import datetime
 import math
 import time
 import requests
+import csv
 
 import pandas as pd
 on_time = []
 off_time= []
 on = []
+run_time = 43200
 
 url = "http://10.0.1.7:8080"
 
@@ -47,6 +49,11 @@ app.layout = html.Div([
                 ),
                 html.Div([
                     html.Div(id='time-off'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='max-run-time'),
                 ],
                     className='three columns'
                 ),
@@ -115,6 +122,7 @@ app.layout = html.Div([
     html.Div(id='start-time', style={'display':'none'}),
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
+    html.Div(id='max-left', style={'display':'none'}),
     html.Div(id='stuff', style={'display':'none'}),
 ])
 
@@ -215,6 +223,25 @@ def update_run_timer(n, time_off):
     color='blue'
     ),
 
+@app.callback(
+    Output('max-run-time', 'children'),
+    [Input('interval-component', 'n_intervals'),
+    Input('max-left', 'children')])
+def update_max_left_timer(n, max_left):
+    rt = max_left
+    print(rt)
+
+    minutes = rt // 60
+    seconds = rt % 60
+    hours = minutes //60
+    minutes = minutes % 60
+
+    return daq.LEDDisplay(
+    label='Max Time',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='black'
+    ),
+
 # @app.callback(
 #     Output('time-off', 'children'),
 #     [Input('interval-component', 'n_intervals'),
@@ -253,7 +280,8 @@ def update_run_timer(n, time_off):
 
 @app.callback(
     [Output('on-time', 'children'),
-    Output('off-time', 'children')],
+    Output('off-time', 'children'),
+    Output('max-left', 'children')],
     [Input('interval-component', 'n_intervals'),
     Input('start-time', 'children'),
     # Input('start-button', 'n_clicks'),
@@ -268,8 +296,10 @@ def on_off(n, start_time, temp_data):
 
     ont=len(on_time)
     offt=len(off_time)
+    max_left= run_time - offt
+    print(max_left)
 
-    return ont, offt
+    return ont, offt, max_left
 
 
 
@@ -308,7 +338,7 @@ def update_total_timer(n, start_time, off_time, on_time):
     start_time = start_time
 
     elapsed_time = off_time + on_time
-    time_left = 3600 - elapsed_time
+    time_left = run_time - elapsed_time
 
     minutes = time_left // 60
     seconds = time_left % 60
@@ -373,15 +403,17 @@ def fetch_data(n, start_time):
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
     # f = df['Temp'].iloc[-1]
-    print(df.index)
+    # print(df.index)
     # print(df)
-    daily_avg = df['Temp'].resample('D', how='mean')
-    print(daily_avg)
+    daily_avg = df['Temp'].resample('D').mean()
+    # print(daily_avg)
+    today_avg = daily_avg.iloc[-1]
+    print(today_avg)
 
     return daq.LEDDisplay(
         # id='current-temp-LED',
         label='Outside  Avg T',
-        value='{:,.2f}'.format(f),
+        value='{:,.2f}'.format(today_avg),
         color='red'
     ),
 
@@ -395,7 +427,7 @@ def outside_temp(n):
     f = ((9.0/5.0) * data) + 32
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
     current_temp = df['Temp'].iloc[-1]
-    print(current_temp)
+    # print(current_temp)
 
     return daq.LEDDisplay(
         # id='current-temp-LED',
