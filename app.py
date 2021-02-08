@@ -117,8 +117,6 @@ app.layout = html.Div([
     ]),
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
-    # html.Div(id='led-run-time', style={'display':'none'}),
-    # html.Div(id='run-time-array', style={'display':'none'}),
     html.Div(id='start-time', style={'display':'none'}),
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
@@ -130,56 +128,10 @@ app.layout = html.Div([
     Output('start-time', 'children'),
     Input('start-button', 'n_clicks'))
 def time_output(sn):
-    # print(sn)
-
-
 
     start_time = time.time()
         # print(type(start_time))
     return start_time
-
-
-# @app.callback(
-#     Output('run-time-led', 'children'),
-#     [Input('interval-component', 'n_intervals'),
-#     Input('on-time', 'children')])
-# def update_run_timer(n, run_time):
-#     # print(run_time)
-#     # rt = int(run_time)
-#     rt = run_time
-#     # print(run_time)
-#     minutes = rt // 60
-#     seconds = rt % 60
-#     hours = minutes //60
-#     minutes = minutes % 60
-#
-#
-#
-#
-#     return daq.LEDDisplay(
-#     label='Run Time',
-#     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
-#     color='red'
-#     ),
-
-
-
-# @app.callback(
-#     Output('new-run-count', 'children'),
-#     [Input('interval-component', 'n_intervals'),
-#     Input('change', 'children'),
-#     Input('run-count', 'children')])
-# def produce_new_run_count(n, change, rc):
-#     # print(change)
-#     print(rc)
-#     c = rc
-#     print(c)
-#     if change > .1:
-#         print(change)
-#         c += 1
-#     # else:
-#     #     c = c
-#     return c
 
 @app.callback(
     Output('run-time-led', 'children'),
@@ -188,16 +140,11 @@ def time_output(sn):
 def update_run_timer(n, run_count):
 
     rt = run_count
-    # print(rt)
 
-    # rt = int(run_time)
     minutes = rt // 60
     seconds = rt % 60
     hours = minutes //60
     minutes = minutes % 60
-
-
-
 
     return daq.LEDDisplay(
     label='Run Time',
@@ -242,41 +189,6 @@ def update_max_left_timer(n, max_left):
     color='black'
     ),
 
-# @app.callback(
-#     Output('time-off', 'children'),
-#     [Input('interval-component', 'n_intervals'),
-#     Input('start-time', 'children')])
-# def update_run_timer(n, start_time):
-#     # print(run_time)
-#     start_time = start_time
-#     elapsed_time = time.time() - start_time
-#     elapsed_time = int(elapsed_time)
-#
-#     rt = int(run_time)
-#     off_time = n-rt
-#
-#     minutes = off_time // 60
-#     seconds = off_time % 60
-#     hours = minutes //60
-#     minutes = minutes % 60
-#
-#
-#
-#     return daq.LEDDisplay(
-#     label='Off Time',
-#     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
-#     color='blue'
-#     ),
-# @app.callback(
-#     Output('stuff', 'children'),
-#     [Input('interval-component', 'n_intervals'),
-#     Input('start-time', 'children'),
-#     Input('off-time', 'children')])
-# def show_stuff(n, start, off_time):
-#     print(off_time)
-#     print(start)
-#     stuff = off_time
-#     return stuff
 
 @app.callback(
     [Output('on-time', 'children'),
@@ -300,8 +212,6 @@ def on_off(n, start_time, temp_data):
     print(max_left)
 
     return ont, offt, max_left
-
-
 
 
 @app.callback(
@@ -384,15 +294,13 @@ def fetch_data(n, start_time):
     df['Change'] = df['MA'].iloc[-1] - df['MA'].iloc[-2]
     # print(df)
     df = df[df['Time'] > start_time]
-    # print(start_time)
-    # print(df)
+
     current_temp = df['MA'].iloc[-1]
     previous_temp = df['MA'].iloc[-2]
 
     change = current_temp - previous_temp
 
     df['Temp'] = df['Temp'].round(2)
-    # print(df)
 
     return df.to_json(), change
 
@@ -402,11 +310,9 @@ def fetch_data(n, start_time):
     Input('outside-interval-component', 'n_intervals'))
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
-    # f = df['Temp'].iloc[-1]
-    # print(df.index)
-    # print(df)
+
     daily_avg = df['Temp'].resample('D').mean()
-    # print(daily_avg)
+
     today_avg = daily_avg.iloc[-1]
     print(today_avg)
 
