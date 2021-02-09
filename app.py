@@ -19,6 +19,12 @@ off_time= []
 on = []
 run_time = 43200
 
+
+# starttime = time.time()
+# while True:
+#     print('tick')
+#     time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+
 url = "http://10.0.1.7:8080"
 
 # c=1
@@ -121,8 +127,26 @@ app.layout = html.Div([
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='max-left', style={'display':'none'}),
-    html.Div(id='stuff', style={'display':'none'}),
+    html.Div(id='rt', style={'display':'none'}),
+    html.Div(id='daily-run-time', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('daily-run-time', 'children'),
+    Input('on-time', 'children'))
+    # Input('outside-interval-component', 'n_intervals')])
+def get_daily_run_time(run_time):
+    rt = run_time
+    print(rt)
+
+
+    with open('time', 'a') as f:
+        f.write("appended text")
+        # writer = csv.writer(f)
+        # writer.writerow(rt)
+    return rt
+
+
 
 @app.callback(
     Output('start-time', 'children'),
@@ -133,6 +157,11 @@ def time_output(sn):
         # print(type(start_time))
     return start_time
 
+# @app.callback(
+#
+# )
+# def save_run_time()
+
 @app.callback(
     Output('run-time-led', 'children'),
     [Input('interval-component', 'n_intervals'),
@@ -140,6 +169,11 @@ def time_output(sn):
 def update_run_timer(n, run_count):
 
     rt = run_count
+    # print(rt)
+
+    # with open(r'time', 'a') as f:
+    #     writer = csv.writer(f)
+    #     writer.writerow(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -154,10 +188,10 @@ def update_run_timer(n, run_count):
 
 @app.callback(
     Output('time-off', 'children'),
-    [Input('interval-component', 'n_intervals'),
-    Input('off-time', 'children')])
-def update_run_timer(n, time_off):
+    Input('off-time', 'children'))
+def update_run_timer(time_off):
     rt = time_off
+    print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -172,11 +206,10 @@ def update_run_timer(n, time_off):
 
 @app.callback(
     Output('max-run-time', 'children'),
-    [Input('interval-component', 'n_intervals'),
-    Input('max-left', 'children')])
-def update_max_left_timer(n, max_left):
+    Input('max-left', 'children'))
+def update_max_left_timer(max_left):
     rt = max_left
-    print(rt)
+    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -209,22 +242,21 @@ def on_off(n, start_time, temp_data):
     ont=len(on_time)
     offt=len(off_time)
     max_left= run_time - offt
-    print(max_left)
+    # print(max_left)
 
     return ont, offt, max_left
 
 
 @app.callback(
     Output('total-time', 'children'),
-    [Input('interval-component', 'n_intervals'),
-    Input('start-time', 'children'),
+    [Input('start-time', 'children'),
     Input('off-time', 'children'),
     Input('on-time', 'children')])
-def update_total_timer(n, start_time, off_time, on_time):
+def update_total_timer(start_time, off_time, on_time):
     start_time = start_time
 
     elapsed_time = off_time + on_time
-    print(elapsed_time)
+    # print(elapsed_time)
 
     minutes = elapsed_time // 60
     seconds = elapsed_time % 60
@@ -264,9 +296,8 @@ def update_total_timer(n, start_time, off_time, on_time):
 
 @app.callback(
     Output('current-temp-led', 'children'),
-    [Input('temp-data', 'children'),
-    Input('interval-component', 'n_intervals')])
-def update_leds(temp_data, n):
+    Input('temp-data', 'children'))
+def update_leds(temp_data):
     df = pd.read_json(temp_data)
     # print(temp_data)
     current_temp = df['Temp'].iloc[-1]
@@ -345,10 +376,9 @@ def outside_temp(n):
 
 @app.callback(
     Output('live-graph', 'figure'),
-    [Input('interval-component', 'n_intervals'),
-    Input('temp-data', 'children'),
+    [Input('temp-data', 'children'),
     Input('start-time', 'children')])
-def update_graph(n, temp_data, start_time):
+def update_graph(temp_data, start_time):
     df = pd.read_json(temp_data)
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
