@@ -20,6 +20,8 @@ on = []
 run_time = 86400
 
 
+
+
 # starttime = time.time()
 # while True:
 #     print('tick')
@@ -33,7 +35,11 @@ pd.options.display.float_format = '{:,.2f}'.format
 
 app = dash.Dash(__name__)
 
-time_start = time.time()
+
+# def start_time():
+#     time_start = time.time()
+#     return time_start
+# # time_start = time.time()
 seconds = 0
 minutes = 0
 hours = 0
@@ -88,13 +94,13 @@ app.layout = html.Div([
                 ],
                     className='three columns'
                 ),
-                html.Div([
-                    html.Div(
-                        html.Button('Start', id='start-button', n_clicks=0),
-                    )
-                ],
-                    className='one column'
-                ),
+                # html.Div([
+                #     html.Div(
+                #         html.Button('Start', id='start-button', n_clicks=0),
+                #     )
+                # ],
+                #     className='one column'
+                # ),
                 html.Div([
                     html.Div(id='outside-t'),
                 ],
@@ -132,8 +138,8 @@ app.layout = html.Div([
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='max-left', style={'display':'none'}),
-    # html.Div(id='rt', style={'display':'none'}),
-    html.Div(id='daily-run-time', style={'display':'none'}),
+    html.Div(id='dummy', style={'display':'none'}),
+    # html.Div(id='daily-run-time', style={'display':'none'}),
 ])
 
 # @app.callback(
@@ -155,8 +161,8 @@ app.layout = html.Div([
 
 @app.callback(
     Output('start-time', 'children'),
-    Input('start-button', 'n_clicks'))
-def time_output(sn):
+    Input('dummy', 'children'))
+def time_output(dummy):
 
     start_time = time.time()
         # print(type(start_time))
@@ -175,7 +181,7 @@ def update_run_timer(n, run_count):
 
     rt = run_count
     # print(rt)
-
+    # print(rt)
     # with open(r'time', 'a') as f:
     #     writer = csv.writer(f)
     #     writer.writerow(rt)
@@ -254,10 +260,10 @@ def update_max_left_timer(max_left):
     Output('off-time', 'children'),
     Output('max-left', 'children')],
     [Input('interval-component', 'n_intervals'),
-    Input('start-time', 'children'),
+    # Input('start-time', 'children'),
     # Input('start-button', 'n_clicks'),
     Input('temp-data', 'children')])
-def on_off(n, start_time, temp_data):
+def on_off(n,temp_data):
     df = pd.read_json(temp_data)
 
     if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
@@ -275,11 +281,11 @@ def on_off(n, start_time, temp_data):
 
 @app.callback(
     Output('total-time', 'children'),
-    [Input('start-time', 'children'),
-    Input('off-time', 'children'),
+    [Input('off-time', 'children'),
     Input('on-time', 'children')])
-def update_total_timer(start_time, off_time, on_time):
-    start_time = start_time
+def update_total_timer(off_time, on_time):
+    # start_time = start_time
+    # print(start_time)
 
     elapsed_time = off_time + on_time
     # print(elapsed_time)
@@ -298,12 +304,12 @@ def update_total_timer(start_time, off_time, on_time):
 @app.callback(
     Output('total-time-left', 'children'),
     [Input('interval-component', 'n_intervals'),
-    Input('start-time', 'children'),
+    # Input('start-time', 'children'),
     Input('off-time', 'children'),
     Input('on-time', 'children')])
-def update_total_timer(n, start_time, off_time, on_time):
+def update_total_timer(n, off_time, on_time):
 
-    start_time = start_time
+    # start_time = start_time
 
     elapsed_time = off_time + on_time
     time_left = run_time - elapsed_time
@@ -341,8 +347,10 @@ def update_leds(temp_data):
     [Input('interval-component', 'n_intervals'),
     Input('start-time', 'children')])
 def fetch_data(n, start_time):
+
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
+    print(start_time)
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
     df.set_index('Time')
@@ -358,7 +366,7 @@ def fetch_data(n, start_time):
     change = current_temp - previous_temp
 
     df['Temp'] = df['Temp'].round(2)
-
+    # print(df)
     return df.to_json(), change
 
 
@@ -371,7 +379,7 @@ def avg_outside_temp(n):
     daily_avg = df['Temp'].resample('D').mean()
 
     today_avg = daily_avg.iloc[-1]
-    print(today_avg)
+    # print(today_avg)
 
     return daq.LEDDisplay(
         # id='current-temp-LED',
@@ -402,11 +410,10 @@ def outside_temp(n):
 
 @app.callback(
     Output('live-graph', 'figure'),
-    [Input('temp-data', 'children'),
-    Input('start-time', 'children')])
-def update_graph(temp_data, start_time):
+    Input('temp-data', 'children'))
+def update_graph(temp_data):
     df = pd.read_json(temp_data)
-    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
+    # start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
     fig = px.line(df, x='Time', y='MA')
 
