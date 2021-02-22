@@ -13,6 +13,7 @@ import math
 import time
 import requests
 import csv
+import numpy as np
 
 import pandas as pd
 on_time = []
@@ -173,77 +174,77 @@ app.layout = html.Div([
 #         # writer = csv.writer(f)
 #         # writer.writerow(rt)
 #     return rt
-@app.callback(
-    Output('temp-datatable-interactivity', 'table'),
-    Input('interval-component', 'n_intervals'))
-def display_daily_table(n):
+# @app.callback(
+#     Output('temp-datatable-interactivity', 'table'),
+#     Input('interval-component', 'n_intervals'))
+# def display_daily_table(n):
+#
+#
+#     return dt.DataTable(id='temp-datatable-interactivity',
+#     data=[{}],
+#     columns=[{}],
+#     fixed_rows={'headers': True, 'data': 0},
+#     style_cell_conditional=[
+#         {'if': {'column_id': 'Date'},
+#         'width':'100px'},
+#         {'if': {'column_id': 'Value'},
+#         'width':'100px'},
+#     ],
+#     style_data_conditional=[
+#         {
+#         'if': {'row_index': 'odd'},
+#         'backgroundColor': 'rgb(248, 248, 248)'
+#         },
+#     ],
+#     style_header={
+#     'backgroundColor': 'rgb(230, 230, 230)',
+#     'fontWeight': 'bold'
+#     },
+#
+#     sort_action="native",
+#     sort_mode="multi",
+#     column_selectable="single",
+#     selected_columns=[],
+#     selected_rows=[],
+#
+#     page_current= 0,
+#     page_size= 10,
+#     )
 
-
-    return dt.DataTable(id='temp-datatable-interactivity',
-    data=[{}],
-    columns=[{}],
-    fixed_rows={'headers': True, 'data': 0},
-    style_cell_conditional=[
-        {'if': {'column_id': 'Date'},
-        'width':'100px'},
-        {'if': {'column_id': 'Value'},
-        'width':'100px'},
-    ],
-    style_data_conditional=[
-        {
-        'if': {'row_index': 'odd'},
-        'backgroundColor': 'rgb(248, 248, 248)'
-        },
-    ],
-    style_header={
-    'backgroundColor': 'rgb(230, 230, 230)',
-    'fontWeight': 'bold'
-    },
-
-    sort_action="native",
-    sort_mode="multi",
-    column_selectable="single",
-    selected_columns=[],
-    selected_rows=[],
-
-    page_current= 0,
-    page_size= 10,
-    )
-
-@app.callback([
-    Output('temp-datatable-interactivity', 'data'),
-    Output('temp-datatable-interactivity', 'columns')],
-    [Input('temp-data', 'children'),
-    Input('on-time', 'children')])
-def display_annual_table(temp_data, on_time):
-    df = pd.read_json(temp_data)
-    # print(df.tail())
-    on_time = on_time
-    print(on_time)
-    df = df.drop('Change', axis=1)
-
-
-        # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
-        #
-        # annual_min_all = annual_min_all.iloc[37:]
-        #
-        # dr = annual_min_all
-        #
-        # dr = dr.sort_values('Value')
-        #
-        # dr = dr.drop(['Site', 'power level'], 1)
-        #
-        # dr = dr.reset_index()
-        # dr = dr.rename(columns={dr.columns[0]: "Date"})
-        # dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
-        #
-        # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
-
-    columns=[
-        {"name": i, "id": i, "selectable": True} for i in df.columns
-    ]
-
-    return df.to_dict('records'), columns
+# @app.callback([
+#     Output('temp-datatable-interactivity', 'data'),
+#     Output('temp-datatable-interactivity', 'columns')],
+#     [Input('temp-data', 'children'),
+#     Input('on-time', 'children')])
+# def display_annual_table(temp_data, on_time):
+#     df = pd.read_json(temp_data)
+#     # print(df.tail())
+#     on_time = on_time
+#     # print(on_time)
+#     df = df.drop('Change', axis=1)
+#
+#
+#         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
+#         #
+#         # annual_min_all = annual_min_all.iloc[37:]
+#         #
+#         # dr = annual_min_all
+#         #
+#         # dr = dr.sort_values('Value')
+#         #
+#         # dr = dr.drop(['Site', 'power level'], 1)
+#         #
+#         # dr = dr.reset_index()
+#         # dr = dr.rename(columns={dr.columns[0]: "Date"})
+#         # dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
+#         #
+#         # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
+#
+#     columns=[
+#         {"name": i, "id": i, "selectable": True} for i in df.columns
+#     ]
+#
+#     return df.to_dict('records'), columns
 
 @app.callback(
     Output('start-time', 'children'),
@@ -351,15 +352,28 @@ def update_max_left_timer(max_left):
     Input('temp-data', 'children')])
 def on_off(n,temp_data):
     df = pd.read_json(temp_data)
+    # print(df.head())
+    df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
 
+    print(df)
     if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
         on_time.append(1)
-    elif df['Change'].iloc[-1] <=0.1:
-        off_time.append(1)
 
+    if df['Change'].iloc[-1] <= 0.1:
+        off_time.append(1)
+    # if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
+    #     on_time.append(1)
+    # elif df['Change'].iloc[-1] <=0.1:
+    #     off_time.append(1)
+    running_time = (df.run == 1).sum()
+
+    # run_time = sum_mask_numpy()
     ont=len(on_time)
     offt=len(off_time)
     max_left= run_time - offt
+    print(ont)
+    print(offt)
+    print(running_time)
     # print(max_left)
 
     return ont, offt, max_left
@@ -382,7 +396,7 @@ def update_total_timer(off_time, on_time):
     # minutes = minutes % 60
     # print(n)
     now = datetime.now().strftime("%H:%M:%S")
-    print(now)
+    # print(now)
     return daq.LEDDisplay(
     label='Time',
     # value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
@@ -401,7 +415,7 @@ def update_total_timer(n, off_time, on_time):
     hours = 24 - n.hour - 1
     minutes = 60 - n.minute - 1
     seconds = 60 - n.second
-    print(hours)
+    # print(hours)
     # start_time = start_time
 
     # elapsed_time = off_time + on_time
