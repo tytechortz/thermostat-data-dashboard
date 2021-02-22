@@ -17,7 +17,7 @@ import pandas as pd
 on_time = []
 off_time= []
 on = []
-run_time = 43200
+run_time = 86400
 
 
 # starttime = time.time()
@@ -60,6 +60,11 @@ app.layout = html.Div([
                 ),
                 html.Div([
                     html.Div(id='max-run-time'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='pct-off-time'),
                 ],
                     className='three columns'
                 ),
@@ -127,24 +132,24 @@ app.layout = html.Div([
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='max-left', style={'display':'none'}),
-    html.Div(id='rt', style={'display':'none'}),
+    # html.Div(id='rt', style={'display':'none'}),
     html.Div(id='daily-run-time', style={'display':'none'}),
 ])
 
-@app.callback(
-    Output('daily-run-time', 'children'),
-    Input('on-time', 'children'))
-    # Input('outside-interval-component', 'n_intervals')])
-def get_daily_run_time(run_time):
-    rt = run_time
-    print(rt)
-
-
-    with open('time', 'a') as f:
-        f.write("appended text")
-        # writer = csv.writer(f)
-        # writer.writerow(rt)
-    return rt
+# @app.callback(
+#     Output('daily-run-time', 'children'),
+#     Input('on-time', 'children'))
+#     # Input('outside-interval-component', 'n_intervals')])
+# def get_daily_run_time(run_time):
+#     rt = run_time
+#     print(rt)
+#     rt = str(rt)
+#
+#     with open('time', 'a') as f:
+#         f.write(rt)
+#         # writer = csv.writer(f)
+#         # writer.writerow(rt)
+#     return rt
 
 
 
@@ -187,11 +192,32 @@ def update_run_timer(n, run_count):
     ),
 
 @app.callback(
+    Output('pct-off-time', 'children'),
+    [Input('on-time', 'children'),
+    Input('off-time', 'children')])
+def pct_off_timer(run_count, off_count):
+
+    rt = int(run_count)
+    ot = int(off_count)
+    print(rt)
+    print(ot)
+
+    pct_off = ot / (rt + ot) * 100
+    print(pct_off)
+
+
+    return daq.LEDDisplay(
+    label='Pct Off',
+    value='{:.2f}'.format(pct_off),
+    color='blue'
+    ),
+
+@app.callback(
     Output('time-off', 'children'),
     Input('off-time', 'children'))
 def update_run_timer(time_off):
     rt = time_off
-    print(rt)
+    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -234,7 +260,7 @@ def update_max_left_timer(max_left):
 def on_off(n, start_time, temp_data):
     df = pd.read_json(temp_data)
 
-    if df['Change'].iloc[-1] > 0.1:
+    if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
         on_time.append(1)
     elif df['Change'].iloc[-1] <=0.1:
         off_time.append(1)
