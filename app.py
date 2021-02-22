@@ -2,6 +2,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq
+import dash_table as dt
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
@@ -118,6 +119,22 @@ app.layout = html.Div([
         ],
             className='row'
         ),
+        html.Div([
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            dt.DataTable(id='temp-datatable-interactivity'),
+                        ]),
+                    ],
+                        className='four columns'
+                    ),
+
+                ],
+                    className='twelve columns'
+                ),
+            ],
+                className='row'
+            ),
     ]),
 
     html.Div([
@@ -156,8 +173,73 @@ app.layout = html.Div([
 #         # writer = csv.writer(f)
 #         # writer.writerow(rt)
 #     return rt
+@app.callback(
+    Output('temp-datatable-interactivity', 'table'),
+    Input('interval-component', 'n_intervals'))
+def display_daily_table(n):
 
 
+    return dt.DataTable(id='temp-datatable-interactivity',
+    data=[{}],
+    columns=[{}],
+    fixed_rows={'headers': True, 'data': 0},
+    style_cell_conditional=[
+        {'if': {'column_id': 'Date'},
+        'width':'100px'},
+        {'if': {'column_id': 'Value'},
+        'width':'100px'},
+    ],
+    style_data_conditional=[
+        {
+        'if': {'row_index': 'odd'},
+        'backgroundColor': 'rgb(248, 248, 248)'
+        },
+    ],
+    style_header={
+    'backgroundColor': 'rgb(230, 230, 230)',
+    'fontWeight': 'bold'
+    },
+
+    sort_action="native",
+    sort_mode="multi",
+    column_selectable="single",
+    selected_columns=[],
+    selected_rows=[],
+
+    page_current= 0,
+    page_size= 10,
+    )
+
+@app.callback([
+    Output('temp-datatable-interactivity', 'data'),
+    Output('temp-datatable-interactivity', 'columns')],
+    Input('temp-data', 'children'))
+    # Input('interval-component', 'n_intervals')])
+def display_annual_table(temp_data):
+    df = pd.read_json(temp_data)
+    print(df)
+
+        # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
+        #
+        # annual_min_all = annual_min_all.iloc[37:]
+        #
+        # dr = annual_min_all
+        #
+        # dr = dr.sort_values('Value')
+        #
+        # dr = dr.drop(['Site', 'power level'], 1)
+        #
+        # dr = dr.reset_index()
+        # dr = dr.rename(columns={dr.columns[0]: "Date"})
+        # dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
+        #
+        # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
+
+    columns=[
+        {"name": i, "id": i, "selectable": True} for i in df.columns
+    ]
+
+    return df.to_dict('records'), columns
 
 @app.callback(
     Output('start-time', 'children'),
