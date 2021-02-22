@@ -397,19 +397,24 @@ def update_total_timer(off_time, on_time):
     Input('off-time', 'children'),
     Input('on-time', 'children')])
 def update_total_timer(n, off_time, on_time):
-
+    n = datetime.now()
+    hours = 24 - n.hour - 1
+    minutes = 60 - n.minute - 1
+    seconds = 60 - n.second
+    print(hours)
     # start_time = start_time
 
-    elapsed_time = off_time + on_time
-    time_left = run_time - elapsed_time
-
-    minutes = time_left // 60
-    seconds = time_left % 60
-    hours = minutes //60
-    minutes = minutes % 60
+    # elapsed_time = off_time + on_time
+    # time_left = run_time - elapsed_time
+    #
+    # minutes = time_left // 60
+    # seconds = time_left % 60
+    # hours = minutes // 60
+    # minutes = minutes % 60
     # print(n)
     return daq.LEDDisplay(
     label='Time Left',
+    # value=now,
     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='orange'
     )
