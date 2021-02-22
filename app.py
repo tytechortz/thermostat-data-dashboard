@@ -218,6 +218,7 @@ def display_daily_table(n):
 def display_annual_table(temp_data):
     df = pd.read_json(temp_data)
     print(df.tail())
+    df = df.drop('Change', axis=1)
 
         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
         #
