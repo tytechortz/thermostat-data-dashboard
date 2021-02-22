@@ -327,11 +327,13 @@ def update_max_left_timer(on_time):
     print(r_minutes)
 
     max_hours = hours_left + r_hours
+    max_minutes = minutes_left + r_minutes
+    max_seconds = seconds_left + r_seconds
     print(max_hours)
 
     return daq.LEDDisplay(
     label='Max Time',
-    value='{:02d}:{:02d}:{:02d}'.format(max_hours, minutes, seconds),
+    value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
     color='black'
     ),
 
