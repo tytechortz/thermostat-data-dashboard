@@ -217,7 +217,7 @@ def display_daily_table(n):
     # Input('interval-component', 'n_intervals')])
 def display_annual_table(temp_data):
     df = pd.read_json(temp_data)
-    print(df)
+    print(df.tail())
 
         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
         #
@@ -438,8 +438,8 @@ def fetch_data(n, start_time):
     df.set_index('Time')
 
     df['MA'] = df.rolling(window=3)['Temp'].mean()
-    df['Change'] = df['MA'].iloc[-1] - df['MA'].iloc[-2]
-    # print(df)
+    df['Change'] = df['MA'] - df['MA'].shift(1)
+    # print(df.head())
     df = df[df['Time'] > start_time]
 
     current_temp = df['MA'].iloc[-1]
