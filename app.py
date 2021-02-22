@@ -155,9 +155,9 @@ app.layout = html.Div([
     html.Div(id='start-time', style={'display':'none'}),
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
-    html.Div(id='max-left', style={'display':'none'}),
+    # html.Div(id='max-left', style={'display':'none'}),
     html.Div(id='dummy', style={'display':'none'}),
-    # html.Div(id='daily-run-time', style={'display':'none'}),
+    html.Div(id='time-now', style={'display':'none'}),
 ])
 
 # @app.callback(
@@ -310,34 +310,44 @@ def update_run_timer(time_off):
 
 @app.callback(
     Output('max-run-time', 'children'),
-    Input('max-left', 'children'))
-def update_max_left_timer(max_left):
-    rt = max_left
+    Input('on-time', 'children'))
+def update_max_left_timer(on_time):
+    ot = on_time
+    print(ot)
+    t = datetime.now()
+    hours_left = 24 - t.hour - 1
+    minutes_left = 60 - t.minute - 1
+    seconds_left = 60 - t.second
 
-    minutes = rt // 60
-    seconds = rt % 60
-    hours = minutes //60
-    minutes = minutes % 60
+    r_minutes = ot // 60
+    r_seconds = ot % 60
+    r_hours = r_minutes // 60
+    r_minutes = r_minutes % 60
+
+    print(r_minutes)
+
+    max_hours = hours_left + r_hours
+    print(max_hours)
 
     return daq.LEDDisplay(
     label='Max Time',
-    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    value='{:02d}:{:02d}:{:02d}'.format(max_hours, minutes, seconds),
     color='black'
     ),
 
 
 @app.callback(
     [Output('on-time', 'children'),
-    Output('off-time', 'children'),
-    Output('max-left', 'children')],
+    Output('off-time', 'children')],
     [Input('interval-component', 'n_intervals'),
-    Input('temp-data', 'children')])
-def on_off(n,temp_data):
+    Input('temp-data', 'children'),
+    Input('time-now', 'children')])
+def on_off(n, temp_data, t):
     df = pd.read_json(temp_data)
 
     df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
 
-    print(df)
+    # print(df)
     if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
         on_time.append(1)
 
@@ -348,13 +358,20 @@ def on_off(n,temp_data):
 
     ont=len(on_time)
     offt=len(off_time)
-    max_left= run_time - offt
-    print(ont)
-    print(offt)
-    print(running_time)
+    # max_left= run_time + t
+    # time_now = t
+    # # print(time_now)
+    # max_left = 10
+    # hours = 24 - t.hour - 1
+    # minutes = 60 - t.minute - 1
+    # seconds = 60 - t.second
+    # print(max_left)
+    # print(ont)
+    # print(offt)
+    # print(running_time)
     # print(max_left)
 
-    return ont, offt, max_left
+    return ont, offt
 
 
 @app.callback(
@@ -371,8 +388,9 @@ def update_total_timer(off_time, on_time):
     color='orange'
     )
 
-@app.callback(
+@app.callback([
     Output('total-time-left', 'children'),
+    Output('time-now', 'children')],
     [Input('interval-component', 'n_intervals'),
     Input('off-time', 'children'),
     Input('on-time', 'children')])
@@ -382,11 +400,13 @@ def update_total_timer(n, off_time, on_time):
     minutes = 60 - t.minute - 1
     seconds = 60 - t.second
 
+    # print(t)
+
     return daq.LEDDisplay(
     label='Time Left',
     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='orange'
-    )
+    ), t
 
 
 @app.callback(
