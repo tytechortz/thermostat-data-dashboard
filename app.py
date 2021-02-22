@@ -252,13 +252,8 @@ app.layout = html.Div([
 def time_output(dummy):
 
     start_time = time.time()
-        # print(type(start_time))
-    return start_time
 
-# @app.callback(
-#
-# )
-# def save_run_time()
+    return start_time
 
 @app.callback(
     Output('run-time-led', 'children'),
@@ -267,11 +262,6 @@ def time_output(dummy):
 def update_run_timer(n, run_count):
 
     rt = run_count
-    # print(rt)
-    # print(rt)
-    # with open(r'time', 'a') as f:
-    #     writer = csv.writer(f)
-    #     writer.writerow(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -292,12 +282,8 @@ def pct_off_timer(run_count, off_count):
 
     rt = int(run_count)
     ot = int(off_count)
-    # print(rt)
-    # print(ot)
 
     pct_off = ot / (rt + ot) * 100
-    # print(pct_off)
-
 
     return daq.LEDDisplay(
     label='Pct Off',
@@ -310,7 +296,6 @@ def pct_off_timer(run_count, off_count):
     Input('off-time', 'children'))
 def update_run_timer(time_off):
     rt = time_off
-    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -328,7 +313,6 @@ def update_run_timer(time_off):
     Input('max-left', 'children'))
 def update_max_left_timer(max_left):
     rt = max_left
-    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -347,12 +331,10 @@ def update_max_left_timer(max_left):
     Output('off-time', 'children'),
     Output('max-left', 'children')],
     [Input('interval-component', 'n_intervals'),
-    # Input('start-time', 'children'),
-    # Input('start-button', 'n_clicks'),
     Input('temp-data', 'children')])
 def on_off(n,temp_data):
     df = pd.read_json(temp_data)
-    # print(df.head())
+
     df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
 
     print(df)
@@ -361,13 +343,9 @@ def on_off(n,temp_data):
 
     if df['Change'].iloc[-1] <= 0.1:
         off_time.append(1)
-    # if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
-    #     on_time.append(1)
-    # elif df['Change'].iloc[-1] <=0.1:
-    #     off_time.append(1)
+
     running_time = (df.run == 1).sum()
 
-    # run_time = sum_mask_numpy()
     ont=len(on_time)
     offt=len(off_time)
     max_left= run_time - offt
@@ -384,22 +362,11 @@ def on_off(n,temp_data):
     [Input('off-time', 'children'),
     Input('on-time', 'children')])
 def update_total_timer(off_time, on_time):
-    # start_time = start_time
-    # print(start_time)
 
-    # elapsed_time = off_time + on_time
-    # print(elapsed_time)
-
-    # minutes = elapsed_time // 60
-    # seconds = elapsed_time % 60
-    # hours = minutes //60
-    # minutes = minutes % 60
-    # print(n)
     now = datetime.now().strftime("%H:%M:%S")
-    # print(now)
+
     return daq.LEDDisplay(
     label='Time',
-    # value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     value=now,
     color='orange'
     )
@@ -407,28 +374,16 @@ def update_total_timer(off_time, on_time):
 @app.callback(
     Output('total-time-left', 'children'),
     [Input('interval-component', 'n_intervals'),
-    # Input('start-time', 'children'),
     Input('off-time', 'children'),
     Input('on-time', 'children')])
 def update_total_timer(n, off_time, on_time):
-    n = datetime.now()
-    hours = 24 - n.hour - 1
-    minutes = 60 - n.minute - 1
-    seconds = 60 - n.second
-    # print(hours)
-    # start_time = start_time
+    t = datetime.now()
+    hours = 24 - t.hour - 1
+    minutes = 60 - t.minute - 1
+    seconds = 60 - t.second
 
-    # elapsed_time = off_time + on_time
-    # time_left = run_time - elapsed_time
-    #
-    # minutes = time_left // 60
-    # seconds = time_left % 60
-    # hours = minutes // 60
-    # minutes = minutes % 60
-    # print(n)
     return daq.LEDDisplay(
     label='Time Left',
-    # value=now,
     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='orange'
     )
@@ -439,11 +394,10 @@ def update_total_timer(n, off_time, on_time):
     Input('temp-data', 'children'))
 def update_leds(temp_data):
     df = pd.read_json(temp_data)
-    # print(temp_data)
+
     current_temp = df['Temp'].iloc[-1]
-    # print(current_temp)
+
     return daq.LEDDisplay(
-        # id='current-temp-LED',
         label='Current Temp',
         value=current_temp,
         color='red'
@@ -458,14 +412,13 @@ def fetch_data(n, start_time):
 
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
-    # print(start_time)
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
     df.set_index('Time')
 
     df['MA'] = df.rolling(window=3)['Temp'].mean()
     df['Change'] = df['MA'] - df['MA'].shift(1)
-    # print(df.head())
+
     df = df[df['Time'] > start_time]
 
     current_temp = df['MA'].iloc[-1]
@@ -474,7 +427,7 @@ def fetch_data(n, start_time):
     change = current_temp - previous_temp
 
     df['Temp'] = df['Temp'].round(2)
-    # print(df)
+
     return df.to_json(), change
 
 
@@ -487,10 +440,8 @@ def avg_outside_temp(n):
     daily_avg = df['Temp'].resample('D').mean()
 
     today_avg = daily_avg.iloc[-1]
-    # print(today_avg)
 
     return daq.LEDDisplay(
-        # id='current-temp-LED',
         label='Outside  Avg T',
         value='{:,.2f}'.format(today_avg),
         color='red'
@@ -506,10 +457,8 @@ def outside_temp(n):
     f = ((9.0/5.0) * data) + 32
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
     current_temp = df['Temp'].iloc[-1]
-    # print(current_temp)
 
     return daq.LEDDisplay(
-        # id='current-temp-LED',
         label='Outside T',
         value='{:,.2f}'.format(f),
         color='red'
@@ -521,7 +470,6 @@ def outside_temp(n):
     Input('temp-data', 'children'))
 def update_graph(temp_data):
     df = pd.read_json(temp_data)
-    # start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
     fig = px.line(df, x='Time', y='MA')
 
