@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from dash.dependencies import Input, Output
 import json
-import datetime
+from datetime import datetime
 import math
 import time
 import requests
@@ -213,12 +213,15 @@ def display_daily_table(n):
 @app.callback([
     Output('temp-datatable-interactivity', 'data'),
     Output('temp-datatable-interactivity', 'columns')],
-    Input('temp-data', 'children'))
-    # Input('interval-component', 'n_intervals')])
-def display_annual_table(temp_data):
+    [Input('temp-data', 'children'),
+    Input('on-time', 'children')])
+def display_annual_table(temp_data, on_time):
     df = pd.read_json(temp_data)
-    print(df.tail())
+    # print(df.tail())
+    on_time = on_time
+    print(on_time)
     df = df.drop('Change', axis=1)
+
 
         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
         #
@@ -288,11 +291,11 @@ def pct_off_timer(run_count, off_count):
 
     rt = int(run_count)
     ot = int(off_count)
-    print(rt)
-    print(ot)
+    # print(rt)
+    # print(ot)
 
     pct_off = ot / (rt + ot) * 100
-    print(pct_off)
+    # print(pct_off)
 
 
     return daq.LEDDisplay(
@@ -370,17 +373,20 @@ def update_total_timer(off_time, on_time):
     # start_time = start_time
     # print(start_time)
 
-    elapsed_time = off_time + on_time
+    # elapsed_time = off_time + on_time
     # print(elapsed_time)
 
-    minutes = elapsed_time // 60
-    seconds = elapsed_time % 60
-    hours = minutes //60
-    minutes = minutes % 60
+    # minutes = elapsed_time // 60
+    # seconds = elapsed_time % 60
+    # hours = minutes //60
+    # minutes = minutes % 60
     # print(n)
+    now = datetime.now().strftime("%H:%M:%S")
+    print(now)
     return daq.LEDDisplay(
-    label='Total Time',
-    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    label='Time',
+    # value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    value=now,
     color='orange'
     )
 
@@ -433,7 +439,7 @@ def fetch_data(n, start_time):
 
     start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
 
-    print(start_time)
+    # print(start_time)
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
     df.set_index('Time')
