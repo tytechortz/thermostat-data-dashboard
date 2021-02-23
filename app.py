@@ -465,6 +465,14 @@ def update_leds(temp_data):
 def fetch_data(n):
     today = datetime.now().strftime('%Y-%m-%d')
     print(today)
+    print(type(today))
+    begin_today = today + ' 00:00:00'
+    print(begin_today)
+    # x = datetime.now()
+    # print(type(x))
+    # print(x)
+    # if x < begin_today:
+    #     print('True')
     # start_time = time.strftime('%Y-%m-%d', time.localtime(start_time))
     # print(start_time)
 
@@ -476,9 +484,9 @@ def fetch_data(n):
     df['Change'] = df['MA'] - df['MA'].shift(1)
     # print(df.tail())
 
+    df_today = df[df['Time'] > begin_today]
     # df_today = df[df['Time'] > start_time]
-    # df_today = df[df['Time'] > start_time]
-    # print(df_today.tail())
+    print(df_today.head())
     # print(type(df_today['Time'].iloc[-1]))
 
     current_temp = df_today['MA'].iloc[-1]
