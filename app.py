@@ -30,6 +30,7 @@ run_time = 86400
 #     time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
 url = "http://10.0.1.7:8080"
+urlin = "http://10.0.1.6:5000"
 
 # c=1
 # print(on)
@@ -304,6 +305,8 @@ def pct_off_timer(run_count, off_count):
     Input('off-time', 'children'))
 def update_run_timer(time_off):
     rt = time_off
+
+
     # print(rt)
     minutes = rt // 60
     seconds = rt % 60
@@ -365,48 +368,34 @@ def update_max_left_timer(on_time):
     Input('today-temp-data', 'children')])
 def on_off(n, temp_data):
     df = pd.read_json(temp_data)
+
+    res = requests.get(urlin)
+    data = res.json()
+    f = ((9.0/5.0) + data) +32
+    print(f)
+
+
+
+
+
+
     # print(df)
-    df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
-
-    t = datetime.now()
-    sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
-    # print(sec_left)
-
-    ont=len(on_time)
-    offt=len(off_time)
-    # print(ont)
-    # print(offt)
-    # print(ont + offt)
-
-    # if sec_left > 0:
-    # print(df)
-    if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
-        on_time.append(1)
-
-    if df['Change'].iloc[-1] <= 0.1:
-        off_time.append(1)
-    # else:
-    #     del on_time[:]
-    #     del off_time[:]
-
-    # print(ont)
-
-    running_time = (df.run == 1).sum()
+    # df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
+    #
+    # t = datetime.now()
+    # sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
 
 
-    # print(ont)
-    # max_left= run_time + t
-    # time_now = t
-    # # print(time_now)
-    # max_left = 10
-    # hours = 24 - t.hour - 1
-    # minutes = 60 - t.minute - 1
-    # seconds = 60 - t.second
-    # print(max_left)
-    # print(ont)
-    # print(offt)
-    # print(running_time)
-    # print(max_left)
+    # ont=len(on_time)
+    # offt=len(off_time)
+
+
+    # if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
+    #     on_time.append(1)
+    #
+    # if df['Change'].iloc[-1] <= 0.1:
+    #     off_time.append(1)
+
 
     return ont, offt
 
@@ -448,13 +437,10 @@ def update_total_timer(n):
     Input('current_temp', 'children'))
 def update_leds(current_temp):
     ct = current_temp
-    print(ct)
-    # print(df.tail())
-    # current_temp = df['Temp'].iloc[-1]
 
     return daq.LEDDisplay(
         label='Current Temp',
-        value='{:,.2f}'.format(current_temp),
+        value='{:,.2f}'.format(ct),
         color='red'
     ),
 
@@ -466,7 +452,7 @@ def update_leds(current_temp):
     Input('interval-component', 'n_intervals'))
 def fetch_data(n):
     today = datetime.now().strftime('%Y-%m-%d')
-    begin_today = today + ' 00:00:00'
+    # begin_today = today + ' 00:00:00'
 
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
@@ -474,12 +460,15 @@ def fetch_data(n):
 
     df['MA'] = df.rolling(window=3)['Temp'].mean()
     df['Change'] = df['MA'] - df['MA'].shift(1)
-    # print(df.tail())
+    print(df.tail())
 
-    df_today = df[df['Time'] > begin_today]
+    df_today = df[df['Time'] > today]
 
     # print(type(df_today['Time'].iloc[-1]))
-
+    res = requests.get(urlin)
+    data = res.json()
+    f = ((9.0/5.0) * data) + 32
+    print(f)
     current_temp = df_today['MA'].iloc[-1]
     previous_temp = df_today['MA'].iloc[-2]
     # print(current_temp)
@@ -515,8 +504,8 @@ def outside_temp(n):
     res = requests.get(url)
     data = res.json()
     f = ((9.0/5.0) * data) + 32
-    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
-    current_temp = df['Temp'].iloc[-1]
+    # df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
+    # current_temp = df['Temp'].iloc[-1]
 
     return daq.LEDDisplay(
         label='Outside T',
