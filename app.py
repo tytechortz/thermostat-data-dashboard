@@ -472,6 +472,8 @@ def fetch_data(n):
     print(f)
     current_temps.append(f)
     print(current_temps)
+    current_temps.pop(2)
+    print(current_temps)
 
 
     current_temp = df_today['MA'].iloc[-1]
