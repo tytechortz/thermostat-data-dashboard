@@ -96,24 +96,11 @@ app.layout = html.Div([
                 ],
                     className='three columns'
                 ),
-                # html.Div([
-                #     html.Div(
-                #         html.Button('Start', id='start-button', n_clicks=0),
-                #     )
-                # ],
-                #     className='one column'
-                # ),
                 html.Div([
-                    html.Div(id='outside-t'),
+                    html.Div(id='pct-off-time-clinched'),
                 ],
                     className='three columns'
                 ),
-                html.Div([
-                    html.Div(id='avg-outside-t'),
-                ],
-                    className='three columns'
-                ),
-
             ],
                 className='twelve columns'
             ),
@@ -122,14 +109,16 @@ app.layout = html.Div([
         ),
         html.Div([
                 html.Div([
-                    # html.Div([
-                    #     html.Div([
-                    #         dt.DataTable(id='temp-datatable-interactivity'),
-                    #     ]),
-                    # ],
-                    #     className='four columns'
-                    # ),
-
+                    html.Div([
+                        html.Div(id='outside-t'),
+                    ],
+                        className='three columns'
+                    ),
+                    html.Div([
+                        html.Div(id='avg-outside-t'),
+                    ],
+                        className='three columns'
+                    ),
                 ],
                     className='twelve columns'
                 ),
@@ -158,6 +147,7 @@ app.layout = html.Div([
     html.Div(id='all-temp-data', style={'display':'none'}),
     html.Div(id='dummy', style={'display':'none'}),
     html.Div(id='time-now', style={'display':'none'}),
+    # html.Div(id='seconds-left', style={'display':'none'}),
 ])
 
 # @app.callback(
@@ -246,14 +236,14 @@ app.layout = html.Div([
 #
 #     return df.to_dict('records'), columns
 
-@app.callback(
-    Output('start-time', 'children'),
-    Input('dummy', 'children'))
-def time_output(dummy):
-
-    start_time = time.time()
-
-    return start_time
+# @app.callback(
+#     Output('start-time', 'children'),
+#     Input('dummy', 'children'))
+# def time_output(dummy):
+#
+#     start_time = time.time()
+#
+#     return start_time
 
 @app.callback(
     Output('run-time-led', 'children'),
@@ -262,7 +252,7 @@ def time_output(dummy):
 def update_run_timer(n, run_count):
 
     rt = run_count
-    print(rt)
+    # print(rt)
     minutes = rt // 60
     seconds = rt % 60
     hours = minutes //60
@@ -288,6 +278,24 @@ def pct_off_timer(run_count, off_count):
     return daq.LEDDisplay(
     label='Pct Off',
     value='{:.2f}'.format(pct_off),
+    color='blue'
+    ),
+
+@app.callback(
+    Output('pct-off-time-clinched', 'children'),
+    [Input('on-time', 'children'),
+    Input('off-time', 'children')])
+def pct_off_timer(run_count, off_count):
+
+    rt = int(run_count)
+    ot = int(off_count)
+
+    pct_off = ot / (rt + ot) * 100
+    pct_off_clinched = ot / 86400 * 100
+
+    return daq.LEDDisplay(
+    label=' Min Pct Off',
+    value='{:.2f}'.format(pct_off_clinched),
     color='blue'
     ),
 
@@ -319,24 +327,24 @@ def update_max_left_timer(on_time):
     minutes_left = 60 - t.minute - 1
     seconds_left = 60 - t.second - 1
 
-    print(minutes_left)
-    print(seconds_left)
+    # print(minutes_left)
+    # print(seconds_left)
 
     r_minutes = ot // 60
     r_seconds = ot % 60
     r_hours = r_minutes // 60
     r_minutes = r_minutes % 60
 
-    print(r_seconds)
+    # print(r_seconds)
 
     # max_hours = hours_left + r_hours
     # max_minutes = minutes_left + r_minutes
     # max_seconds = seconds_left + r_seconds
 
     sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
-    print(sec_left)
+    # print(sec_left)
     poss_sec_left = sec_left + ot
-    print(poss_sec_left)
+    # print(poss_sec_left)
 
     max_minutes = poss_sec_left // 60
     max_seconds = poss_sec_left % 60
@@ -347,7 +355,7 @@ def update_max_left_timer(on_time):
     label='Max Time',
     value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
     color='black'
-    ),
+    )
 
 
 @app.callback(
@@ -360,18 +368,33 @@ def on_off(n, temp_data):
     # print(df)
     df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
 
-    # print(df)
-    if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
-        on_time.append(1)
-
-    if df['Change'].iloc[-1] <= 0.1:
-        off_time.append(1)
-
-    running_time = (df.run == 1).sum()
+    t = datetime.now()
+    sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
+    # print(sec_left)
 
     ont=len(on_time)
     offt=len(off_time)
-    print(ont)
+    # print(ont)
+    # print(offt)
+    # print(ont + offt)
+
+    if sec_left > 0:
+    # print(df)
+        if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
+            on_time.append(1)
+
+        if df['Change'].iloc[-1] <= 0.1:
+            off_time.append(1)
+    else:
+        del on_time[:]
+        del off_time[:]
+
+    # print(ont)
+
+    running_time = (df.run == 1).sum()
+
+
+    # print(ont)
     # max_left= run_time + t
     # time_now = t
     # # print(time_now)
@@ -425,7 +448,7 @@ def update_total_timer(n):
     Input('today-temp-data', 'children'))
 def update_leds(temp_data):
     df = pd.read_json(temp_data)
-    # print(df)
+    # print(df.tail())
     current_temp = df['Temp'].iloc[-1]
 
     return daq.LEDDisplay(
@@ -438,11 +461,12 @@ def update_leds(temp_data):
     [Output('today-temp-data', 'children'),
     Output('all-temp-data', 'children'),
     Output('change', 'children')],
-    [Input('interval-component', 'n_intervals'),
-    Input('start-time', 'children')])
-def fetch_data(n, start_time):
-
-    start_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
+    Input('interval-component', 'n_intervals'))
+def fetch_data(n):
+    today = datetime.now().strftime('%Y-%m-%d')
+    print(today)
+    # start_time = time.strftime('%Y-%m-%d', time.localtime(start_time))
+    # print(start_time)
 
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
@@ -450,10 +474,12 @@ def fetch_data(n, start_time):
 
     df['MA'] = df.rolling(window=3)['Temp'].mean()
     df['Change'] = df['MA'] - df['MA'].shift(1)
-    # print(df.head())
+    # print(df.tail())
 
-    df_today = df[df['Time'] > start_time]
+    # df_today = df[df['Time'] > start_time]
+    # df_today = df[df['Time'] > start_time]
     # print(df_today.tail())
+    # print(type(df_today['Time'].iloc[-1]))
 
     current_temp = df_today['MA'].iloc[-1]
     previous_temp = df_today['MA'].iloc[-2]
