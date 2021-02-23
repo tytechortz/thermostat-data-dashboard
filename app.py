@@ -147,7 +147,7 @@ app.layout = html.Div([
     html.Div(id='all-temp-data', style={'display':'none'}),
     html.Div(id='dummy', style={'display':'none'}),
     html.Div(id='time-now', style={'display':'none'}),
-    # html.Div(id='seconds-left', style={'display':'none'}),
+    html.Div(id='current_temp', style={'display':'none'}),
 ])
 
 # @app.callback(
@@ -378,16 +378,16 @@ def on_off(n, temp_data):
     # print(offt)
     # print(ont + offt)
 
-    if sec_left > 0:
+    # if sec_left > 0:
     # print(df)
-        if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
-            on_time.append(1)
+    if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
+        on_time.append(1)
 
-        if df['Change'].iloc[-1] <= 0.1:
-            off_time.append(1)
-    else:
-        del on_time[:]
-        del off_time[:]
+    if df['Change'].iloc[-1] <= 0.1:
+        off_time.append(1)
+    # else:
+    #     del on_time[:]
+    #     del off_time[:]
 
     # print(ont)
 
@@ -445,36 +445,28 @@ def update_total_timer(n):
 
 @app.callback(
     Output('current-temp-led', 'children'),
-    Input('today-temp-data', 'children'))
-def update_leds(temp_data):
-    df = pd.read_json(temp_data)
+    Input('current_temp', 'children'))
+def update_leds(current_temp):
+    ct = current_temp
+    print(ct)
     # print(df.tail())
-    current_temp = df['Temp'].iloc[-1]
+    # current_temp = df['Temp'].iloc[-1]
 
     return daq.LEDDisplay(
         label='Current Temp',
-        value=current_temp,
+        value='{:,.2f}'.format(current_temp),
         color='red'
     ),
 
 @app.callback(
     [Output('today-temp-data', 'children'),
     Output('all-temp-data', 'children'),
-    Output('change', 'children')],
+    Output('change', 'children'),
+    Output('current_temp', 'children')],
     Input('interval-component', 'n_intervals'))
 def fetch_data(n):
     today = datetime.now().strftime('%Y-%m-%d')
-    print(today)
-    print(type(today))
     begin_today = today + ' 00:00:00'
-    print(begin_today)
-    # x = datetime.now()
-    # print(type(x))
-    # print(x)
-    # if x < begin_today:
-    #     print('True')
-    # start_time = time.strftime('%Y-%m-%d', time.localtime(start_time))
-    # print(start_time)
 
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
     pd.to_datetime(df['Time'])
@@ -485,18 +477,18 @@ def fetch_data(n):
     # print(df.tail())
 
     df_today = df[df['Time'] > begin_today]
-    # df_today = df[df['Time'] > start_time]
-    print(df_today.head())
+
     # print(type(df_today['Time'].iloc[-1]))
 
     current_temp = df_today['MA'].iloc[-1]
     previous_temp = df_today['MA'].iloc[-2]
+    # print(current_temp)
 
     change = current_temp - previous_temp
 
     # df['Temp'] = df['Temp'].round(2)
 
-    return df_today.to_json(), df.to_json(), change
+    return df_today.to_json(), df.to_json(), change, current_temp
 
 
 @app.callback(
