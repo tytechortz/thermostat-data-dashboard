@@ -19,6 +19,7 @@ import pandas as pd
 on_time = []
 off_time= []
 on = []
+current_temps = []
 run_time = 86400
 
 
@@ -469,6 +470,10 @@ def fetch_data(n):
     data = res.json()
     f = ((9.0/5.0) * data) + 32
     print(f)
+    current_temps.append(f)
+    print(current_temps)
+
+
     current_temp = df_today['MA'].iloc[-1]
     previous_temp = df_today['MA'].iloc[-2]
     # print(current_temp)
