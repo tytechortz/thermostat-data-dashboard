@@ -117,16 +117,16 @@ app.layout = html.Div([
             interval=1000,
             n_intervals=0
         ),
-        dcc.Interval(
-            id='outside-interval-component',
-            interval=60000,
-            n_intervals=0
-        ),
-        dcc.Interval(
-            id='current-interval-component',
-            interval=10000,
-            n_intervals=0
-        ),
+        # dcc.Interval(
+        #     id='outside-interval-component',
+        #     interval=60000,
+        #     n_intervals=0
+        # ),
+        # dcc.Interval(
+        #     id='current-interval-component',
+        #     interval=10000,
+        #     n_intervals=0
+        # ),
     ]),
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
@@ -137,14 +137,43 @@ app.layout = html.Div([
     html.Div(id='current-temp', style={'display':'none'}),
     html.Div(id='daily-run-time', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('total-time', 'children'),
+    Input('interval-component', 'n_intervals'))
+def update_total_timer(n):
+
+    now = datetime.now().strftime("%H:%M:%S")
+
+    return daq.LEDDisplay(
+    label='Time',
+    value=now,
+    color='orange'
+    )
+
+@app.callback(
+    Output('total-time-left', 'children'),
+    Input('interval-component', 'n_intervals'))
+def update_total_timer(n):
+    t = datetime.now()
+    hours = 24 - t.hour - 1
+    minutes = 60 - t.minute - 1
+    seconds = 60 - t.second
+
+    # print(seconds)
+
+    return daq.LEDDisplay(
+    label='Time Left',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='orange'
+    )
+
 @app.callback(
     Output('current-temp-led', 'children'),
-    [Input('current-temp', 'children'),
-    Input('current-interval-component', 'n_intervals')])
-def update_leds(current_temp, n):
+    Input('current-temp', 'children'))
+def update_leds(current_temp):
     ct = current_temp
     print(ct)
-    print(n)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
@@ -162,11 +191,11 @@ def current_temp(n):
     f = ((9.0/5.0) * data) + 32
     # print(f)
     current_temps_list.append(f)
-    # print(current_temps_list)
+    print(current_temps_list)
     current_temp = current_temps_list[2]
     previous_temp = current_temps_list[1]
     current_temps_list.pop(0)
-    # print(current_temp)
+    print(current_temp)
     # print(previous_temp)
 
     change = current_temp - previous_temp
@@ -176,7 +205,7 @@ def current_temp(n):
 
 @app.callback(
     Output('avg-outside-t', 'children'),
-    Input('outside-interval-component', 'n_intervals'))
+    Input('interval-component', 'n_intervals'))
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
 
@@ -193,7 +222,7 @@ def avg_outside_temp(n):
 
 @app.callback(
     Output('outside-t', 'children'),
-    Input('outside-interval-component', 'n_intervals'))
+    Input('interval-component', 'n_intervals'))
 def outside_temp(n):
     res = requests.get(url)
     data = res.json()
