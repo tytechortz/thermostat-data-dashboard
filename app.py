@@ -35,7 +35,7 @@ urlin = "http://10.0.1.6:5000"
 
 # c=1
 # print(on)
-pd.options.display.float_format = '{:,.2f}'.format
+# pd.options.display.float_format = '{:,.2f}'.format
 
 app = dash.Dash(__name__)
 
@@ -148,8 +148,8 @@ app.layout = html.Div([
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='all-temp-data', style={'display':'none'}),
     html.Div(id='dummy', style={'display':'none'}),
-    html.Div(id='time-now', style={'display':'none'}),
-    html.Div(id='current_temp', style={'display':'none'}),
+    # html.Div(id='time-now', style={'display':'none'}),
+    html.Div(id='current-temp', style={'display':'none'}),
 ])
 
 # @app.callback(
@@ -365,16 +365,14 @@ def update_max_left_timer(on_time):
 @app.callback(
     [Output('on-time', 'children'),
     Output('off-time', 'children')],
-    Input('interval-component', 'n_intervals'))
-def on_off(n):
+    [Input('interval-component', 'n_intervals'),
+    Input('current-temp', 'children')])
+def on_off(n, ct):
     # df = pd.read_json(temp_data)
-
-    res = requests.get(urlin)
-    data = res.json()
-    f = ((9.0/5.0) + data) +32
+    f = ct
     # print(f)
-    ont = 1
-    offt = 2
+    ont = 60
+    offt = 60
 
     return ont, offt
 
@@ -392,9 +390,8 @@ def update_total_timer(n):
     color='orange'
     )
 
-@app.callback([
+@app.callback(
     Output('total-time-left', 'children'),
-    Output('time-now', 'children')],
     Input('interval-component', 'n_intervals'))
 def update_total_timer(n):
     t = datetime.now()
@@ -402,21 +399,23 @@ def update_total_timer(n):
     minutes = 60 - t.minute - 1
     seconds = 60 - t.second
 
-    # print(t)
+    # print(seconds)
 
     return daq.LEDDisplay(
     label='Time Left',
     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='orange'
-    ), t
+    )
 
 
 @app.callback(
     Output('current-temp-led', 'children'),
-    Input('current_temp', 'children'))
-def update_leds(current_temp):
+    [Input('current-temp', 'children'),
+    Input('interval-component', 'n_intervals')])
+def update_leds(current_temp, n):
     ct = current_temp
-
+    # print(ct)
+    # print(n)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
@@ -443,29 +442,29 @@ def fetch_data(n):
 
     return df_today.to_json(), df.to_json()
 
-@app.callback(
-    [Output('change', 'children'),
-    Output('current_temp', 'children')],
+@app.callback([
+    Output('change', 'children'),
+    Output('current-temp', 'children')],
     Input('interval-component', 'n_intervals'))
-def fetch_data(n):
+def current_temp(n):
     res = requests.get(urlin)
     data = res.json()
     f = ((9.0/5.0) * data) + 32
     # print(f)
     current_temps_list.append(f)
-    print(current_temps_list)
+    # print(current_temps_list)
     current_temp = current_temps_list[2]
     previous_temp = current_temps_list[1]
     current_temps_list.pop(0)
 
-    print(previous_temp)
+    # print(current_temp)
 
     # current_temp = df_today['MA'].iloc[-1]
     # previous_temp = df_today['MA'].iloc[-2]
     # print(current_temp)
 
     change = current_temp - previous_temp
-    print(change)
+    # print(change)
 
     # df['Temp'] = df['Temp'].round(2)
 
