@@ -58,7 +58,7 @@ app.layout = html.Div([
                     className='three columns'
                 ),
                 html.Div([
-                    # html.Div(id='time-off'),
+                    html.Div(id='time-off-led'),
                 ],
                     className='three columns'
                 ),
@@ -140,6 +140,25 @@ app.layout = html.Div([
     # html.Div(id='offt', style={'display':'none'}),
     # html.Div(id='ont', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('time-off-led', 'children'),
+    Input('off-time', 'children'))
+def update_run_timer(time_off):
+    rt = time_off
+
+
+    # print(rt)
+    minutes = rt // 60
+    seconds = rt % 60
+    hours = minutes //60
+    minutes = minutes % 60
+
+    return daq.LEDDisplay(
+    label='Off Time',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='blue'
+    ),
 
 @app.callback(
     [Output('on-time', 'children'),
