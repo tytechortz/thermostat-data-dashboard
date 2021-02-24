@@ -131,8 +131,8 @@ app.layout = html.Div([
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
     # html.Div(id='start-time', style={'display':'none'}),
-    # html.Div(id='on-time', style={'display':'none'}),
-    # html.Div(id='off-time', style={'display':'none'}),
+    html.Div(id='on-time', style={'display':'none'}),
+    html.Div(id='off-time', style={'display':'none'}),
     # html.Div(id='max-left', style={'display':'none'}),
     html.Div(id='current-temp', style={'display':'none'}),
     # html.Div(id='previous-temp', style={'display':'none'}),
@@ -140,6 +140,22 @@ app.layout = html.Div([
     # html.Div(id='offt', style={'display':'none'}),
     # html.Div(id='ont', style={'display':'none'}),
 ])
+
+@app.callback(
+    [Output('on-time', 'children'),
+    Output('off-time', 'children')],
+    [Input('interval-component', 'n_intervals'),
+    Input('current-temp', 'children')])
+def on_off(n, ct):
+    # df = pd.read_json(temp_data)
+    f = ct
+    # print(f)
+    ont = 60
+    offt = 60
+    print(ont)
+    print(offt)
+
+    return ont, offt
 
 @app.callback([
     Output('change', 'children'),
