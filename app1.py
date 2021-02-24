@@ -191,6 +191,9 @@ def current_temp(n):
     previous_temp = current_temps_list[1]
     current_temps_list.pop(0)
 
+    df['change'] = df['Temp'] - df['Temp'].shift(1)
+    print(df.tail())
+
     # print(current_temp)
 
     # current_temp = df_today['MA'].iloc[-1]
