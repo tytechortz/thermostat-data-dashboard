@@ -131,11 +131,11 @@ app.layout = html.Div([
             interval=10000,
             n_intervals=0
         ),
-        # dcc.Interval(
-        #     id='outside-interval-component',
-        #     interval=60000,
-        #     n_intervals=0
-        # ),
+        dcc.Interval(
+            id='outside-interval-component',
+            interval=60000,
+            n_intervals=0
+        ),
         dcc.Interval(
             id='current-interval-component',
             interval=1000,
@@ -154,6 +154,38 @@ app.layout = html.Div([
     # html.Div(id='new-offt', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('avg-outside-t', 'children'),
+    Input('outside-interval-component', 'n_intervals'))
+def avg_outside_temp(n):
+    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
+
+    daily_avg = df['Temp'].resample('D').mean()
+
+    today_avg = daily_avg.iloc[-1]
+
+    return daq.LEDDisplay(
+        label='Outside  Avg T',
+        value='{:,.2f}'.format(today_avg),
+        color='red'
+    ),
+
+@app.callback(
+    Output('outside-t', 'children'),
+    Input('outside-interval-component', 'n_intervals'))
+def outside_temp(n):
+    res = requests.get(url)
+    data = res.json()
+    f = ((9.0/5.0) * data) + 32
+    # df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
+    # current_temp = df['Temp'].iloc[-1]
+
+    return daq.LEDDisplay(
+        label='Outside T',
+        value='{:,.2f}'.format(f),
+        color='red'
+    ),
 
 @app.callback(
     Output('total-time-left', 'children'),
