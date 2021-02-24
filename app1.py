@@ -46,29 +46,29 @@ hours = 0
 app.layout = html.Div([
     html.Div(id='current-temp-led'),
 
-    dcc.Graph(id='live-graph'),
+    # dcc.Graph(id='live-graph'),
 
 
     html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    html.Div(id='run-time-led'),
+                    # html.Div(id='run-time-led'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='time-off'),
+                    # html.Div(id='time-off'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='max-run-time'),
+                    # html.Div(id='max-run-time'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='pct-off-time'),
+                    # html.Div(id='pct-off-time'),
                 ],
                     className='three columns'
                 ),
@@ -83,22 +83,22 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    html.Div(id='total-time'),
+                    # html.Div(id='total-time'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='total-time-left'),
+                    # html.Div(id='total-time-left'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='outside-t'),
+                    # html.Div(id='outside-t'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    html.Div(id='avg-outside-t'),
+                    # html.Div(id='avg-outside-t'),
                 ],
                     className='three columns'
                 ),
@@ -130,43 +130,44 @@ app.layout = html.Div([
     ]),
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
-    html.Div(id='start-time', style={'display':'none'}),
-    html.Div(id='on-time', style={'display':'none'}),
-    html.Div(id='off-time', style={'display':'none'}),
-    html.Div(id='max-left', style={'display':'none'}),
+    # html.Div(id='start-time', style={'display':'none'}),
+    # html.Div(id='on-time', style={'display':'none'}),
+    # html.Div(id='off-time', style={'display':'none'}),
+    # html.Div(id='max-left', style={'display':'none'}),
     html.Div(id='current-temp', style={'display':'none'}),
-    html.Div(id='daily-run-time', style={'display':'none'}),
+    # html.Div(id='previous-temp', style={'display':'none'}),
+    # html.Div(id='daily-run-time', style={'display':'none'}),
+    # html.Div(id='offt', style={'display':'none'}),
+    # html.Div(id='ont', style={'display':'none'}),
 ])
 
-@app.callback(
-    Output('total-time', 'children'),
+@app.callback([
+    Output('change', 'children'),
+    Output('current-temp', 'children'),
+    Output('temp-data', 'children')],
     Input('interval-component', 'n_intervals'))
-def update_total_timer(n):
+def current_temp(n):
+    df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
+    # print(df
+    f = df['Temp'][-1]
+    current_temps_list.append(f)
+    print(current_temps_list)
+    current_temp = current_temps_list[2]
+    previous_temp = current_temps_list[1]
+    current_temps_list.pop(0)
 
-    now = datetime.now().strftime("%H:%M:%S")
+    # print(current_temp)
 
-    return daq.LEDDisplay(
-    label='Time',
-    value=now,
-    color='orange'
-    )
+    # current_temp = df_today['MA'].iloc[-1]
+    # previous_temp = df_today['MA'].iloc[-2]
+    # print(current_temp)
 
-@app.callback(
-    Output('total-time-left', 'children'),
-    Input('interval-component', 'n_intervals'))
-def update_total_timer(n):
-    t = datetime.now()
-    hours = 24 - t.hour - 1
-    minutes = 60 - t.minute - 1
-    seconds = 60 - t.second
+    change = current_temp - previous_temp
+    print(change)
 
-    # print(seconds)
+    # df['Temp'] = df['Temp'].round(2)
 
-    return daq.LEDDisplay(
-    label='Time Left',
-    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
-    color='orange'
-    )
+    return change, current_temp, df.to_json()
 
 @app.callback(
     Output('current-temp-led', 'children'),
@@ -174,68 +175,12 @@ def update_total_timer(n):
 def update_leds(current_temp):
     ct = current_temp
     print(ct)
+    # print(n)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
         color='red'
     ),
-
-
-@app.callback([
-    Output('change', 'children'),
-    Output('current-temp', 'children')],
-    Input('interval-component', 'n_intervals'))
-def current_temp(n):
-    res = requests.get(urlin)
-    data = res.json()
-    f = ((9.0/5.0) * data) + 32
-    # print(f)
-    current_temps_list.append(f)
-    print(current_temps_list)
-    current_temp = current_temps_list[2]
-    previous_temp = current_temps_list[1]
-    current_temps_list.pop(0)
-    print(current_temp)
-    # print(previous_temp)
-
-    change = current_temp - previous_temp
-    # print(change)
-
-    return change, current_temp
-
-@app.callback(
-    Output('avg-outside-t', 'children'),
-    Input('interval-component', 'n_intervals'))
-def avg_outside_temp(n):
-    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
-
-    daily_avg = df['Temp'].resample('D').mean()
-
-    today_avg = daily_avg.iloc[-1]
-
-    return daq.LEDDisplay(
-        label='Outside  Avg T',
-        value='{:,.2f}'.format(today_avg),
-        color='red'
-    ),
-
-
-@app.callback(
-    Output('outside-t', 'children'),
-    Input('interval-component', 'n_intervals'))
-def outside_temp(n):
-    res = requests.get(url)
-    data = res.json()
-    f = ((9.0/5.0) * data) + 32
-    # df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
-    # current_temp = df['Temp'].iloc[-1]
-
-    return daq.LEDDisplay(
-        label='Outside T',
-        value='{:,.2f}'.format(f),
-        color='red'
-    ),
-
 
 
 if __name__ == '__main__':
