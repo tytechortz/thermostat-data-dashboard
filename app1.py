@@ -65,7 +65,7 @@ app.layout = html.Div([
                     className='three columns'
                 ),
                 html.Div([
-                    # html.Div(id='max-run-time'),
+                    html.Div(id='max-run-time'),
                 ],
                     className='three columns'
                 ),
@@ -85,32 +85,44 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    # html.Div(id='total-time'),
+                    html.Div(id='total-time'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    # html.Div(id='total-time-left'),
+                    html.Div(id='total-time-left'),
                 ],
                     className='three columns'
                 ),
                 html.Div([
-                    # html.Div(id='outside-t'),
+                    html.Div(id='pct-off-time-clinched'),
                 ],
                     className='three columns'
                 ),
-                html.Div([
-                    # html.Div(id='avg-outside-t'),
-                ],
-                    className='three columns'
-                ),
-
             ],
                 className='twelve columns'
             ),
         ],
             className='row'
         ),
+        html.Div([
+                html.Div([
+                    html.Div([
+                        html.Div(id='outside-t'),
+                    ],
+                        className='three columns'
+                    ),
+                    html.Div([
+                        html.Div(id='avg-outside-t'),
+                    ],
+                        className='three columns'
+                    ),
+                ],
+                    className='twelve columns'
+                ),
+            ],
+                className='row'
+            ),
     ]),
 
     html.Div([
@@ -142,6 +154,24 @@ app.layout = html.Div([
     # html.Div(id='new-offt', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('pct-off-time-clinched', 'children'),
+    [Input('on-time', 'children'),
+    Input('off-time', 'children')])
+def pct_off_timer(run_count, off_count):
+
+    rt = int(run_count)
+    ot = int(off_count)
+
+    pct_off = ot / (rt + ot) * 100
+    pct_off_clinched = ot / 86400 * 100
+
+    return daq.LEDDisplay(
+    label=' Min Pct Off',
+    value='{:.2f}'.format(pct_off_clinched),
+    color='blue'
+    ),
 
 @app.callback(
     Output('pct-off-time', 'children'),
