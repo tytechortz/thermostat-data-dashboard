@@ -156,6 +156,54 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('total-time-left', 'children'),
+    Input('on-time', 'children'))
+def update_total_timer(on_time):
+    ot = on_time
+    t = datetime.now()
+
+    # hours = 1 - t.hour
+    minutes = 60 - t.minute - 1
+    seconds = 60 - t.second
+
+    # print(seconds)
+
+    return daq.LEDDisplay(
+    label='Time Left',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='orange'
+    )
+
+@app.callback(
+    Output('max-run-time', 'children'),
+    Input('on-time', 'children'))
+def update_max_left_timer(on_time):
+    ont = on_time
+    print(ont)
+    t = datetime.now()
+    print(t.minute)
+
+    sec_left = 3600 - ((t.minute * 60) + t.second)
+    poss_sec_left = sec_left + ont
+    max_minutes = poss_sec_left // 60
+    max_seconds = poss_sec_left % 60
+    max_minutes = max_minutes % 60
+    max_hours = 0
+    # poss_sec_left = sec_left + ot
+    # print(poss_sec_left)
+
+    # max_minutes = sec_left // 60
+    # max_seconds = sec_left % 60
+    # max_hours = max_minutes // 60
+    # max_minutes = max_minutes % 60
+
+    return daq.LEDDisplay(
+    label='Max Time',
+    value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
+    color='black'
+    )
+
+@app.callback(
     Output('pct-off-time-clinched', 'children'),
     [Input('on-time', 'children'),
     Input('off-time', 'children')])
@@ -165,7 +213,7 @@ def pct_off_timer(run_count, off_count):
     ot = int(off_count)
 
     pct_off = ot / (rt + ot) * 100
-    pct_off_clinched = ot / 86400 * 100
+    pct_off_clinched = ot / 3600 * 100
 
     return daq.LEDDisplay(
     label=' Min Pct Off',
@@ -206,8 +254,8 @@ def on_off(n, change):
 
     on_time = len(ont)
     off_time = len(offt)
-    print(on_time)
-    print(off_time)
+    # print(on_time)
+    # print(off_time)
 
     return on_time, off_time
 
@@ -217,7 +265,7 @@ def on_off(n, change):
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
 
     # print(rt)
@@ -238,7 +286,7 @@ def update_run_timer(n, on_time):
     Input('off-time', 'children')])
 def update_run_timer(change, off_time):
     ot = off_time
-    print(off_time)
+    # print(off_time)
 
     # print(rt)
     minutes = ot // 60
