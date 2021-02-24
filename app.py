@@ -19,7 +19,7 @@ import pandas as pd
 on_time = []
 off_time= []
 on = []
-current_temps = []
+current_temps_list = []
 run_time = 86400
 
 
@@ -365,38 +365,16 @@ def update_max_left_timer(on_time):
 @app.callback(
     [Output('on-time', 'children'),
     Output('off-time', 'children')],
-    [Input('interval-component', 'n_intervals'),
-    Input('today-temp-data', 'children')])
-def on_off(n, temp_data):
-    df = pd.read_json(temp_data)
+    Input('interval-component', 'n_intervals'))
+def on_off(n):
+    # df = pd.read_json(temp_data)
 
     res = requests.get(urlin)
     data = res.json()
     f = ((9.0/5.0) + data) +32
-    print(f)
-
-
-
-
-
-
-    # print(df)
-    # df['run'] = np.where((df['Change'] > 0.1) | (df['Change'] >= 119), 1, 0)
-    #
-    # t = datetime.now()
-    # sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
-
-
-    # ont=len(on_time)
-    # offt=len(off_time)
-
-
-    # if df['Change'].iloc[-1] > 0.1 or df['Temp'].iloc[-1] >= 119:
-    #     on_time.append(1)
-    #
-    # if df['Change'].iloc[-1] <= 0.1:
-    #     off_time.append(1)
-
+    # print(f)
+    ont = 1
+    offt = 2
 
     return ont, offt
 
@@ -447,9 +425,7 @@ def update_leds(current_temp):
 
 @app.callback(
     [Output('today-temp-data', 'children'),
-    Output('all-temp-data', 'children'),
-    Output('change', 'children'),
-    Output('current_temp', 'children')],
+    Output('all-temp-data', 'children')],
     Input('interval-component', 'n_intervals'))
 def fetch_data(n):
     today = datetime.now().strftime('%Y-%m-%d')
@@ -461,31 +437,39 @@ def fetch_data(n):
 
     df['MA'] = df.rolling(window=3)['Temp'].mean()
     df['Change'] = df['MA'] - df['MA'].shift(1)
-    print(df.tail())
+    # print(df.tail())
 
     df_today = df[df['Time'] > today]
 
-    # print(type(df_today['Time'].iloc[-1]))
+    return df_today.to_json(), df.to_json()
+
+@app.callback(
+    [Output('change', 'children'),
+    Output('current_temp', 'children')],
+    Input('interval-component', 'n_intervals'))
+def fetch_data(n):
     res = requests.get(urlin)
     data = res.json()
     f = ((9.0/5.0) * data) + 32
-    print(f)
-    current_temps.append(f)
-    print(current_temps)
-    current_temps.pop(2)
-    print(current_temps)
+    # print(f)
+    current_temps_list.append(f)
+    print(current_temps_list)
+    current_temp = current_temps_list[2]
+    previous_temp = current_temps_list[1]
+    current_temps_list.pop(0)
 
+    print(previous_temp)
 
-    current_temp = df_today['MA'].iloc[-1]
-    previous_temp = df_today['MA'].iloc[-2]
+    # current_temp = df_today['MA'].iloc[-1]
+    # previous_temp = df_today['MA'].iloc[-2]
     # print(current_temp)
 
     change = current_temp - previous_temp
+    print(change)
 
     # df['Temp'] = df['Temp'].round(2)
 
-    return df_today.to_json(), df.to_json(), change, current_temp
-
+    return change, current_temp
 
 @app.callback(
     Output('avg-outside-t', 'children'),
