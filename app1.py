@@ -2,21 +2,24 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq
+import dash_table as dt
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
 from dash.dependencies import Input, Output
 import json
-import datetime
+from datetime import datetime
 import math
 import time
 import requests
 import csv
+import numpy as np
 
 import pandas as pd
 on_time = []
 off_time= []
 on = []
+current_temps_list = []
 run_time = 86400
 
 
@@ -26,6 +29,7 @@ run_time = 86400
 #     time.sleep(60.0 - ((time.time() - starttime) % 60.0))
 
 url = "http://10.0.1.7:8080"
+urlin = "http://10.0.1.6:5000"
 
 # c=1
 # print(on)
@@ -125,9 +129,31 @@ app.layout = html.Div([
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='max-left', style={'display':'none'}),
-    # html.Div(id='rt', style={'display':'none'}),
+    html.Div(id='current-temp', style={'display':'none'}),
     html.Div(id='daily-run-time', style={'display':'none'}),
 ])
+
+@app.callback([
+    Output('change', 'children'),
+    Output('current-temp', 'children')],
+    Input('interval-component', 'n_intervals'))
+def current_temp(n):
+    res = requests.get(urlin)
+    data = res.json()
+    f = ((9.0/5.0) * data) + 32
+    # print(f)
+    current_temps_list.append(f)
+    # print(current_temps_list)
+    current_temp = current_temps_list[2]
+    previous_temp = current_temps_list[1]
+    current_temps_list.pop(0)
+    print(current_temp)
+    print(previous_temp)
+
+    change = current_temp - previous_temp
+    print(change)
+
+    return change, current_temp
 
 @app.callback(
     Output('avg-outside-t', 'children'),
