@@ -122,6 +122,11 @@ app.layout = html.Div([
             interval=60000,
             n_intervals=0
         ),
+        dcc.Interval(
+            id='current-interval-component',
+            interval=10000,
+            n_intervals=0
+        ),
     ]),
     html.Div(id='temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
@@ -132,6 +137,20 @@ app.layout = html.Div([
     html.Div(id='current-temp', style={'display':'none'}),
     html.Div(id='daily-run-time', style={'display':'none'}),
 ])
+@app.callback(
+    Output('current-temp-led', 'children'),
+    [Input('current-temp', 'children'),
+    Input('current-interval-component', 'n_intervals')])
+def update_leds(current_temp, n):
+    ct = current_temp
+    print(ct)
+    print(n)
+    return daq.LEDDisplay(
+        label='Current Temp',
+        value='{:,.2f}'.format(ct),
+        color='red'
+    ),
+
 
 @app.callback([
     Output('change', 'children'),
@@ -147,11 +166,11 @@ def current_temp(n):
     current_temp = current_temps_list[2]
     previous_temp = current_temps_list[1]
     current_temps_list.pop(0)
-    print(current_temp)
-    print(previous_temp)
+    # print(current_temp)
+    # print(previous_temp)
 
     change = current_temp - previous_temp
-    print(change)
+    # print(change)
 
     return change, current_temp
 
