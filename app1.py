@@ -378,26 +378,62 @@ def pct_off_timer(run_count, off_count):
     [Output('on-time', 'children'),
     Output('off-time', 'children')],
     [Input('interval-component', 'n_intervals'),
-    Input('change', 'children')])
-def on_off(n, change):
-    t = datetime.now()
-    ts = start_time
-    # df = pd.read_json(temp_data)
-    f = change
-    if t.hour == 0 and t.minute == 0 and t.second == 0:
-        ont.clear()
-        offt.clear()
-    if f > 0.15:
-        ont.append(1)
-    else:
-        offt.append(1)
+    Input('all-temp-data', 'children')])
+def on_off(n, data):
+    df = pd.read_json(data)
+    print(df.tail())
+    print(type(df.index))
+    df['tvalue'] = df.index
+    df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    print(df.tail())
 
-    on_time = len(ont)
-    off_time = len(offt)
+
+    # t = datetime.now()
+    # ts = start_time
+    # # df = pd.read_json(temp_data)
+    # f = change
+    # if t.hour == 0 and t.minute == 0 and t.second == 0:
+    #     ont.clear()
+    #     offt.clear()
+    # if f > 0.15:
+    #     ont.append(1)
+    # else:
+    #     offt.append(1)
+
+    # on_time = len(ont)
+    # off_time = len(offt)
+
+    on_time = 10
+    off_time = 20
     # print(on_time)
     # print(off_time)
 
     return on_time, off_time
+
+# @app.callback(
+#     [Output('on-time', 'children'),
+#     Output('off-time', 'children')],
+#     [Input('interval-component', 'n_intervals'),
+#     Input('change', 'children')])
+# def on_off(n, change):
+#     t = datetime.now()
+#     ts = start_time
+#     # df = pd.read_json(temp_data)
+#     f = change
+#     if t.hour == 0 and t.minute == 0 and t.second == 0:
+#         ont.clear()
+#         offt.clear()
+#     if f > 0.15:
+#         ont.append(1)
+#     else:
+#         offt.append(1)
+#
+#     on_time = len(ont)
+#     off_time = len(offt)
+#     # print(on_time)
+#     # print(off_time)
+#
+#     return on_time, off_time
 
 @app.callback(
     Output('time-on-led', 'children'),
@@ -471,7 +507,7 @@ def current_temp(n):
     # df['cum_sum'] = df['run_tot'].cumsum()
     # df['run_tot'] = df['run_tot'].astype('float64')
     # df['run_on'] =pd.to_datetime(df['cum_sum'].dt.strftime("%H:%M:%S"))
-    print(df.tail())
+    # print(df.tail())
 
 
     # ont = len(df[df['change'] > 0.1])
