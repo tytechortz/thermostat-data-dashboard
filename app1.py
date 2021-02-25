@@ -3,6 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq
 import dash_table as dt
+from dash_table import Format
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import plotly.express as px
@@ -107,23 +108,36 @@ app.layout = html.Div([
             className='row'
         ),
         html.Div([
+            html.Div([
                 html.Div([
-                    html.Div([
-                        html.Div(id='outside-t'),
-                    ],
-                        className='three columns'
-                    ),
-                    html.Div([
-                        html.Div(id='avg-outside-t'),
-                    ],
-                        className='three columns'
-                    ),
+                    html.Div(id='outside-t'),
                 ],
-                    className='twelve columns'
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='avg-outside-t'),
+                ],
+                    className='three columns'
                 ),
             ],
-                className='row'
+                className='twelve columns'
             ),
+        ],
+            className='row'
+        ),
+        html.Div([
+            html.Div([
+                html.Div([
+                    dt.DataTable(id='temp-datatable-interactivity'),
+                ],
+                    className='five columns'
+                ),
+            ],
+                className='twelve columns'
+            ),
+        ],
+            className='row'
+        ),
     ]),
 
     html.Div([
@@ -143,7 +157,7 @@ app.layout = html.Div([
             n_intervals=0
         ),
     ]),
-    html.Div(id='temp-data', style={'display':'none'}),
+    html.Div(id='all-temp-data', style={'display':'none'}),
     html.Div(id='change', style={'display':'none'}),
     # html.Div(id='start-time', style={'display':'none'}),
     html.Div(id='on-time', style={'display':'none'}),
@@ -155,6 +169,85 @@ app.layout = html.Div([
     # html.Div(id='new-offt', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
 ])
+
+
+
+@app.callback(
+    Output('temp-datatable-interactivity', 'table'),
+    Input('interval-component', 'n_intervals'))
+def display_daily_table(n):
+
+
+    return dt.DataTable(id='temp-datatable-interactivity',
+    data=[{}],
+    columns=[{}],
+    fixed_rows={'headers': True, 'data': 0},
+    style_cell_conditional=[
+        {'if': {'column_id': 'Date'},
+        'width':'100px'},
+        {'if': {'column_id': 'Value'},
+        'width':'100px'},
+    ],
+    style_data_conditional=[
+        {
+        'if': {'row_index': 'odd'},
+        'backgroundColor': 'rgb(248, 248, 248)'
+        },
+    ],
+    style_header={
+    'backgroundColor': 'rgb(230, 230, 230)',
+    'fontWeight': 'bold'
+    },
+
+    sort_action="native",
+    sort_mode="multi",
+    column_selectable="single",
+    selected_columns=[],
+    selected_rows=[],
+
+    page_current= 0,
+    page_size= 10,
+    )
+
+
+@app.callback([
+    Output('temp-datatable-interactivity', 'data'),
+    Output('temp-datatable-interactivity', 'columns')],
+    [Input('all-temp-data', 'children'),
+    Input('on-time', 'children')])
+def display_annual_table(all_temp_data, on_time):
+    df = pd.read_json(all_temp_data)
+    print(df.tail())
+    on_time = on_time
+    # df.groupby(times.hour).
+    # print(on_time)
+    # df = df.drop('change', axis=1)
+    # df = df.reset_index(inplace = True)
+    print(df.tail())
+
+
+        # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
+        #
+        # annual_min_all = annual_min_all.iloc[37:]
+        #
+        # dr = annual_min_all
+        #
+        # dr = dr.sort_values('Value')
+        #
+        # dr = dr.drop(['Site', 'power level'], 1)
+        #
+        # dr = dr.reset_index()
+        # dr = dr.rename(columns={dr.columns[0]: "Date"})
+        # dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
+        #
+        # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
+
+    columns=[
+        {"name": i, "id": i, "selectable": True} for i in df.columns
+    ]
+
+    return df.to_dict('records'), columns
+
 
 @app.callback(
     Output('total-time', 'children'),
@@ -230,9 +323,9 @@ def update_max_left_timer(on_time):
     # print(t.minute)
 
     sec_left = 3600 - ((t.minute * 60) + t.second)
-    print(sec_left)
+    # print(sec_left)
     poss_sec_left = sec_left + ont
-    print(poss_sec_left)
+    # print(poss_sec_left)
     max_minutes = poss_sec_left // 60
     max_seconds = poss_sec_left % 60
     max_minutes = max_minutes % 60
@@ -356,11 +449,12 @@ def update_run_timer(change, off_time):
 @app.callback([
     Output('change', 'children'),
     Output('current-temp', 'children'),
-    Output('temp-data', 'children')],
+    Output('all-temp-data', 'children')],
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
-    # print(df
+    print(df)
+
     f = df['Temp'][-1]
     current_temps_list.append(f)
 
@@ -374,6 +468,8 @@ def current_temp(n):
     df['change'] = df['Temp'] - df['Temp'].shift(1)
     # print(df.tail())
     change = df['change'].iloc[-1]
+    df['run'] = np.where(df['change'] > .1, 'true', 'false')
+
 
     # ont = len(df[df['change'] > 0.1])
     # offt = len(df[df['change'] <= 0.1])
