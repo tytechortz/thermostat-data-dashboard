@@ -217,35 +217,10 @@ def display_daily_table(n):
     Input('on-time', 'children')])
 def display_annual_table(all_temp_data, on_time):
     df = pd.read_json(all_temp_data)
-    # df = pd.DatetimeIndex()
-    # print(df.tail())
-    # df['Day'] = df.index.strftime('%Y-%m-%d')
-    # print(df.tail())
-
-
-
 
     on_time = on_time
-    # df_hours = df.groupby(df['run_tot'].index.hour).sum()
-    # df_hours = df.resample('H').sum()
+
     df_days = df.resample('D').sum()
-
-    print(df_days)
-    # print(on_time)
-    # df = df.drop('change', axis=1)
-    # df = df.reset_index(inplace = True)
-    # print(df_hours)
-    # df_hours['Day'] = df_hours.index.strftime('%Y-%m-%d')
-    # df_hours['Run Time'] = df_hours['run_tot'] * 10
-    # df_hours = df_hours.drop(['Temp', 'change', 'run_tot'], axis=1)
-    # print(df_hours)
-    # minutes = rt // 60
-    # seconds = rt % 60
-    # hours = minutes //60
-    # minutes = minutes % 60
-
-
-    # print(df_days)
     df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
     df_days['run time'] = df_days['run_tot'] * 10
 
@@ -259,29 +234,7 @@ def display_annual_table(all_temp_data, on_time):
 
     df_days['Run Time'] = (pd.to_datetime(df_days['hours'].astype(str) + ':'+ df_days['minutes1'].astype(str), format='%H:%M').dt.time)
 
-    # df_days['Run Time'] = pd.to_timedelta(df_days['run time'], unit='s')
-    # df_days['Run Time'] = datetime.strptime(df_days['run time'],'%H:%M')
-    # df_days['run time'] = pd.Timedelta(df_days['Run Time'], 's')
-    # print(df_days['Run Time'].dtypes)
     df_days = df_days.drop(['Temp', 'change', 'run_tot', 'run time', 'hours', 'minutes', 'seconds', 'minutes1'], axis=1)
-    print(df_days)
-
-
-        # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
-        #
-        # annual_min_all = annual_min_all.iloc[37:]
-        #
-        # dr = annual_min_all
-        #
-        # dr = dr.sort_values('Value')
-        #
-        # dr = dr.drop(['Site', 'power level'], 1)
-        #
-        # dr = dr.reset_index()
-        # dr = dr.rename(columns={dr.columns[0]: "Date"})
-        # dr['Date'] = dr['Date'].dt.strftime('%Y-%m-%d')
-        #
-        # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
 
     columns=[
 
@@ -327,8 +280,6 @@ def outside_temp(n):
     res = requests.get(url)
     data = res.json()
     f = ((9.0/5.0) * data) + 32
-    # df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'])
-    # current_temp = df['Temp'].iloc[-1]
 
     return daq.LEDDisplay(
         label='Outside T',
