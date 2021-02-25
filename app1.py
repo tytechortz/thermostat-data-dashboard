@@ -227,15 +227,44 @@ def display_annual_table(all_temp_data, on_time):
 
     on_time = on_time
     # df_hours = df.groupby(df['run_tot'].index.hour).sum()
-    df_hours = df.resample('H').sum()
+    # df_hours = df.resample('H').sum()
+    df_days = df.resample('D').sum()
+
+    print(df_days)
     # print(on_time)
     # df = df.drop('change', axis=1)
     # df = df.reset_index(inplace = True)
-    print(df_hours)
-    df_hours['Day'] = df_hours.index.strftime('%Y-%m-%d')
-    df_hours['Run Time'] = df_hours['run_tot'] * 10
-    df_hours = df_hours.drop(['Temp', 'change', 'run_tot'], axis=1)
-    print(df_hours)
+    # print(df_hours)
+    # df_hours['Day'] = df_hours.index.strftime('%Y-%m-%d')
+    # df_hours['Run Time'] = df_hours['run_tot'] * 10
+    # df_hours = df_hours.drop(['Temp', 'change', 'run_tot'], axis=1)
+    # print(df_hours)
+    # minutes = rt // 60
+    # seconds = rt % 60
+    # hours = minutes //60
+    # minutes = minutes % 60
+
+
+    # print(df_days)
+    df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
+    df_days['run time'] = df_days['run_tot'] * 10
+
+    df_days['minutes'] = df_days['run time'] // 60
+
+    df_days['seconds'] = df_days['run time'] % 60
+
+    df_days['hours'] = df_days['minutes'] // 60
+
+    df_days['minutes1'] = df_days['minutes'] % 60
+
+    df_days['Run Time'] = (pd.to_datetime(df_days['hours'].astype(str) + ':'+ df_days['minutes1'].astype(str), format='%H:%M').dt.time)
+
+    # df_days['Run Time'] = pd.to_timedelta(df_days['run time'], unit='s')
+    # df_days['Run Time'] = datetime.strptime(df_days['run time'],'%H:%M')
+    # df_days['run time'] = pd.Timedelta(df_days['Run Time'], 's')
+    # print(df_days['Run Time'].dtypes)
+    df_days = df_days.drop(['Temp', 'change', 'run_tot', 'run time', 'hours', 'minutes', 'seconds', 'minutes1'], axis=1)
+    print(df_days)
 
 
         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
@@ -255,10 +284,11 @@ def display_annual_table(all_temp_data, on_time):
         # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
 
     columns=[
-        {"name": i, "id": i, "selectable": True} for i in df_hours.columns
+
+        {"name": i, "id": i, "selectable": True} for i in df_days.columns
     ]
 
-    return df_hours.to_dict('records'), columns
+    return df_days.to_dict('records'), columns
 
 
 @app.callback(
@@ -313,7 +343,7 @@ def update_total_timer(on_time):
     ot = on_time
     t = datetime.now()
 
-    # hours = 1 - t.hour
+    hours = 24 - t.hour - 1
     minutes = 60 - t.minute - 1
     seconds = 60 - t.second
 
@@ -327,21 +357,23 @@ def update_total_timer(on_time):
 
 @app.callback(
     Output('max-run-time', 'children'),
-    Input('on-time', 'children'))
-def update_max_left_timer(on_time):
+    [Input('on-time', 'children'),
+    Input('interval-component', 'n_intervals')])
+def update_max_left_timer(on_time, n):
     ont = on_time
-    print(ont)
+    # print(ont)
     t = datetime.now()
     # print(t.minute)
 
-    sec_left = 3600 - ((t.minute * 60) + t.second)
+    sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
     # print(sec_left)
     poss_sec_left = sec_left + ont
     # print(poss_sec_left)
     max_minutes = poss_sec_left // 60
     max_seconds = poss_sec_left % 60
+    max_hours = max_minutes // 60
     max_minutes = max_minutes % 60
-    max_hours = 0
+
     # poss_sec_left = sec_left + ot
     # print(poss_sec_left)
 
@@ -366,7 +398,7 @@ def pct_off_timer(run_count, off_count):
     ot = int(off_count)
 
     pct_off = ot / (rt + ot) * 100
-    pct_off_clinched = ot / 3600 * 100
+    pct_off_clinched = ot / 86400 * 100
 
     return daq.LEDDisplay(
     label=' Min Pct Off',
@@ -401,10 +433,10 @@ def on_off(n, change):
     ts = start_time
     # df = pd.read_json(temp_data)
     f = change
-    if t.minute == 0 and t.second == 0:
+    if t.hour == 0 and t.minute == 0 and t.second == 0:
         ont.clear()
         offt.clear()
-    if f > 0.1:
+    if f > 0.15:
         ont.append(1)
     else:
         offt.append(1)
@@ -465,7 +497,7 @@ def update_run_timer(change, off_time):
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
-    print(df)
+    # print(df)
     # df['Datetime'] = pd.to_datetime(df['Time'])
     # df = df.set_index('Datetime')
     # print(df)
@@ -485,6 +517,10 @@ def current_temp(n):
     change = df['change'].iloc[-1]
     df['run'] = np.where(df['change'] > .1, 'true', 'false')
     df['run_tot'] = np.where(df['run'] == 'true', 1, 0)
+    # df['cum_sum'] = df['run_tot'].cumsum()
+    # df['run_tot'] = df['run_tot'].astype('float64')
+    # df['run_on'] =pd.to_datetime(df['cum_sum'].dt.strftime("%H:%M:%S"))
+    print(df.tail())
 
 
     # ont = len(df[df['change'] > 0.1])
