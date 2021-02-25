@@ -20,6 +20,7 @@ import pandas as pd
 # on_time = []
 offt = []
 ont = []
+start_time = datetime.now().minute
 # on = []
 current_temps_list = []
 run_time = 86400
@@ -213,10 +214,12 @@ def update_max_left_timer(on_time):
     ont = on_time
     print(ont)
     t = datetime.now()
-    print(t.minute)
+    # print(t.minute)
 
     sec_left = 3600 - ((t.minute * 60) + t.second)
+    print(sec_left)
     poss_sec_left = sec_left + ont
+    print(poss_sec_left)
     max_minutes = poss_sec_left // 60
     max_seconds = poss_sec_left % 60
     max_minutes = max_minutes % 60
@@ -276,9 +279,13 @@ def pct_off_timer(run_count, off_count):
     [Input('interval-component', 'n_intervals'),
     Input('change', 'children')])
 def on_off(n, change):
+    t = datetime.now()
+    ts = start_time
     # df = pd.read_json(temp_data)
     f = change
-
+    if t.minute == 0 and t.second == 0:
+        ont.clear()
+        offt.clear()
     if f > 0.1:
         ont.append(1)
     else:
