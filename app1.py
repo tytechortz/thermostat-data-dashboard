@@ -157,6 +157,19 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('total-time', 'children'),
+    Input('interval-component', 'n_intervals'))
+def update_total_timer(n):
+
+    now = datetime.now().strftime("%H:%M:%S")
+
+    return daq.LEDDisplay(
+    label='Time',
+    value=now,
+    color='orange'
+    )
+
+@app.callback(
     Output('avg-outside-t', 'children'),
     Input('outside-interval-component', 'n_intervals'))
 def avg_outside_temp(n):
