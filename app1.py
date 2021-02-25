@@ -397,7 +397,7 @@ def on_off(n, data):
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     df['change'] = df['change'].fillna(0)
     print(df.tail())
-    run_time_sum = df['time delta'].sum()
+    run_time_sum = df['run_time'].max()
     print(run_time_sum)
 
 
