@@ -217,13 +217,25 @@ def display_daily_table(n):
     Input('on-time', 'children')])
 def display_annual_table(all_temp_data, on_time):
     df = pd.read_json(all_temp_data)
-    print(df.tail())
+    # df = pd.DatetimeIndex()
+    # print(df.tail())
+    # df['Day'] = df.index.strftime('%Y-%m-%d')
+    # print(df.tail())
+
+
+
+
     on_time = on_time
-    # df.groupby(times.hour).
+    # df_hours = df.groupby(df['run_tot'].index.hour).sum()
+    df_hours = df.resample('H').sum()
     # print(on_time)
     # df = df.drop('change', axis=1)
     # df = df.reset_index(inplace = True)
-    print(df.tail())
+    print(df_hours)
+    df_hours['Day'] = df_hours.index.strftime('%Y-%m-%d')
+    df_hours['Run Time'] = df_hours['run_tot'] * 10
+    df_hours = df_hours.drop(['Temp', 'change', 'run_tot'], axis=1)
+    print(df_hours)
 
 
         # annual_min_all = powell_dr.loc[powell_dr.groupby(pd.Grouper(freq='Y')).idxmin().iloc[:, 0]]
@@ -243,10 +255,10 @@ def display_annual_table(all_temp_data, on_time):
         # dr['Diff'] = dr['Value'] - dr['Value'].shift(1)
 
     columns=[
-        {"name": i, "id": i, "selectable": True} for i in df.columns
+        {"name": i, "id": i, "selectable": True} for i in df_hours.columns
     ]
 
-    return df.to_dict('records'), columns
+    return df_hours.to_dict('records'), columns
 
 
 @app.callback(
@@ -454,6 +466,9 @@ def update_run_timer(change, off_time):
 def current_temp(n):
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
     print(df)
+    # df['Datetime'] = pd.to_datetime(df['Time'])
+    # df = df.set_index('Datetime')
+    # print(df)
 
     f = df['Temp'][-1]
     current_temps_list.append(f)
@@ -469,6 +484,7 @@ def current_temp(n):
     # print(df.tail())
     change = df['change'].iloc[-1]
     df['run'] = np.where(df['change'] > .1, 'true', 'false')
+    df['run_tot'] = np.where(df['run'] == 'true', 1, 0)
 
 
     # ont = len(df[df['change'] > 0.1])
