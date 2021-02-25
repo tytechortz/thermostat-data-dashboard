@@ -380,12 +380,25 @@ def pct_off_timer(run_count, off_count):
     [Input('interval-component', 'n_intervals'),
     Input('all-temp-data', 'children')])
 def on_off(n, data):
+    t = datetime.now()
+
+    hours = 24 - t.hour - 1
+    minutes = 60 - t.minute - 1
+    seconds = 60 - t.second
+
+
     df = pd.read_json(data)
     print(df.tail())
     print(type(df.index))
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    df['run'] = np.where(df['change'] > .1, 'true', 'false')
+    print(type(df['time delta'].iloc[-1]))
+    df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
+    df['change'] = df['change'].fillna(0)
     print(df.tail())
+    run_time_sum = df['time delta'].sum()
+    print(run_time_sum)
 
 
     # t = datetime.now()
