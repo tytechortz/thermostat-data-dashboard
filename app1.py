@@ -227,7 +227,7 @@ def display_annual_table(all_temp_data, on_time):
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     df['run_time'] = df['run_time'].fillna(0)
     df['change'] = df['change'].fillna(0)
-    print(df.tail())
+    # print(df.tail())
 
     # print(t)
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
@@ -241,14 +241,17 @@ def display_annual_table(all_temp_data, on_time):
     # print(on_time)
     df_days = df.resample('D').max()
     # df_days =
-    # print(df_days.tail())
-    # print(type(df_days['run_time'].max()))
+    print(df_days.tail())
+    print(type(df_days['run_time'][-1]))
+    new_seconds = df_days['run_time'][-1].total_seconds()
+    df_days['Run Time'] = df_days['run_time'][-1].total_seconds()
+
     # df_days['run_time'] = df['run_time'].astype(int)
 
 
 
     df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
-
+    print(df_days)
 
 
     df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
