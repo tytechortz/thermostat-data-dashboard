@@ -246,6 +246,8 @@ def display_annual_table(all_temp_data, on_time):
     # new_seconds = df_days['run_time'][-1].total_seconds()
     df_days['seconds'] = df_days['run_time'].dt.total_seconds()
     print(df_days)
+    df_days['Pct. On'] = df_days['seconds'] / 86400
+    df_days['Pct. On'] = df_days['Pct. On'].map("{:.2%}".format)
     # df_days['run_time'] = df['run_time'].astype(int)
 
 
@@ -286,6 +288,7 @@ def display_annual_table(all_temp_data, on_time):
 
     df_days['Run Time'] = df_days['hours'].astype(str)+':'+ df_days['minutes'].astype(str)
     df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs', 'minutes', 'hours'], axis=1)
+    df_days = df_days[['Day', 'Run Time', 'Pct. On']]
     # df_days.loc[df_days.index[-1], 'Run Time' ] = run_clock
     print(df_days)
 
