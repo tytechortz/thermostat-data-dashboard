@@ -241,38 +241,47 @@ def display_annual_table(all_temp_data, on_time):
     # print(on_time)
     df_days = df.resample('D').max()
     # df_days =
-    print(df_days.tail())
-    print(type(df_days['run_time'][-1]))
-    new_seconds = df_days['run_time'][-1].total_seconds()
-    df_days['Run Time'] = df_days['run_time'][-1].total_seconds()
-
+    # print(df_days.tail())
+    # print(type(df_days['run_time'][-1]))
+    # new_seconds = df_days['run_time'][-1].total_seconds()
+    df_days['seconds'] = df_days['run_time'].dt.total_seconds()
+    print(df_days)
     # df_days['run_time'] = df['run_time'].astype(int)
 
 
 
     df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
-    print(df_days)
+
 
 
     df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
     # df_days['run time'] = df_days['run_tot'] * 10
     # df_days['run time'] = df_days['run_time'].astype(int)
     #
-    # df_days['minutes'] = df_days['run time'] // 60
-    #
-    # df_days['seconds'] = df_days['run time'] % 60
-    #
-    # df_days['hours'] = df_days['minutes'] // 60
-    #
-    # df_days['minutes1'] = df_days['minutes'] % 60
-    # print(df_days.tail())
+    df_days['minutes1'] = df_days['seconds'] // 60
+
+    df_days['secs'] = df_days['seconds'] % 60
+
+    df_days['hours'] = df_days['minutes1'] // 60
+    df_days['hours'] = df_days['hours'].round(0).astype(int)
+    # hours = df_days['hours'].iloc[0]
+
+    df_days['minutes'] = df_days['minutes1'] % 60
+    df_days['minutes'] = df_days['minutes'].round(0).astype(int)
+    # minutes = df_days['minutes1'].iloc[0]
+    # print(minutes)
+    # print(hours)
+    # run_clock = '{}:{}'.format(hours, minutes)
+    # print(run_clock)
     # print(df_days['run_time'].iloc[-1])
     # print(type(df_days['run_time'].iloc[-1]))
     # df_days['run_time'] = pd.to_datetime(df['run_time'], format="%H:%M:%S")
     # df_days.Day = pd.DatetimeIndex(df.Day).strftime("%Y-%m-%d")
-    # df_days['Run Time'] = (pd.to_datetime(df_days['hours'].astype(str) + ':'+ df_days['minutes1'].astype(str), format='%H:%M').dt.time)
-
-    # df_days = df_days.drop(['Temp', 'change', 'run_tot', 'run time', 'hours', 'minutes', 'seconds', 'minutes1', 'time delta'], axis=1)
+    # df_days['Run Time'] = ('{}:{}''.format(hours, minutes)
+    print(df_days)
+    df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs'], axis=1)
+    # df_days.loc[df_days.index[-1], 'Run Time' ] = run_clock
+    print(df_days)
 
     columns=[
         # dict(id='1', name='Day', format=)
@@ -351,7 +360,7 @@ def update_total_timer(on_time):
     Input('on-time', 'children'))
 def update_max_left_timer(on_time):
     ont = on_time
-    print(ont)
+    # print(ont)
     t = datetime.now()
     # print(t.minute)
 
@@ -514,7 +523,7 @@ def on_off(n, data):
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
 
     # print(rt)
