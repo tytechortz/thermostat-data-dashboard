@@ -220,12 +220,14 @@ def display_annual_table(all_temp_data, on_time):
     t = datetime.now()
     # print(df.tail())
 
+    # print(df.tail())
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
+    df['run'] = np.where(df['change'] > .2, 'true', 'false')
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
+    df['run_time'] = df['run_time'].fillna(0)
     df['change'] = df['change'].fillna(0)
-    # print(df.tail())
+    print(df.tail())
 
     # print(t)
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
@@ -346,7 +348,7 @@ def update_total_timer(on_time):
     Input('on-time', 'children'))
 def update_max_left_timer(on_time):
     ont = on_time
-    print(ont)
+    # print(ont)
     t = datetime.now()
     # print(t.minute)
 
@@ -426,11 +428,11 @@ def on_off(n, data):
 
 
     df = pd.read_json(data)
-    print(df.tail())
+    # print(df.tail())
     # print(type(df.index))
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
+    df['run'] = np.where(df['change'] > .2, 'true', 'false')
     # df = df.loc['2021-202-25' : '2021-202-25']
     # print(type(df['time delta'].iloc[-1]))
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
@@ -438,15 +440,18 @@ def on_off(n, data):
     df = df.loc[str(today):]
 
     # df = df.loc[str(today):str(today)]
-    print(df.tail())
+    # print(df.tail())
     # df = df.resample('D').sum()
     # print(df)
+    df['run_time'] = df['run_time'].fillna(pd.Timedelta(seconds=0))
     run_time_sum = df['run_time'].max()
-    print(run_time_sum)
+    # print(run_time_sum)
     # print(type(run_time_sum))
-
+    # if run_time_sum == NaT:
+        # on_time = 0
+    # else:
     on_time = run_time_sum / np.timedelta64(1, 's')
-    print(on_time)
+    # print(on_time)
 #
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     # print(today_tot_seconds)
@@ -506,7 +511,7 @@ def on_off(n, data):
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
 
     # print(rt)
@@ -527,11 +532,11 @@ def update_run_timer(n, on_time):
     Input('current-interval-component', 'n_intervals')])
 def update_run_timer(off_time, n):
     ot = int(off_time)
-    print(change)
-    print(n)
+    # print(change)
+    # print(n)
 
 
-    # print(rt)
+    # print(ot)
     minutes = ot // 60
     seconds = ot % 60
     hours = minutes // 60
@@ -576,7 +581,7 @@ def current_temp(n):
     change = df['change'].iloc[-1]
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
+    df['run'] = np.where(df['change'] > .2, 'true', 'false')
     df['run_tot'] = np.where(df['run'] == 'true', 1, 0)
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     # df['change'] = df['change'].fillna(0)
@@ -612,7 +617,7 @@ def current_temp(n):
     Input('current-temp', 'children'))
 def update_leds(current_temp):
     ct = current_temp
-    print(ct)
+    # print(ct)
     # print(n)
     return daq.LEDDisplay(
         label='Current Temp',
