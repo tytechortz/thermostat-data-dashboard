@@ -220,19 +220,12 @@ def display_annual_table(all_temp_data, on_time):
     t = datetime.now()
     # print(df.tail())
 
-<<<<<<< HEAD
     # print(df.tail())
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
     df['run'] = np.where(df['change'] > .2, 'true', 'false')
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     df['run_time'] = df['run_time'].fillna(0)
-=======
-    df['tvalue'] = df.index
-    df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
-    df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
     df['change'] = df['change'].fillna(0)
     # print(df.tail())
 
@@ -248,7 +241,6 @@ def display_annual_table(all_temp_data, on_time):
     # print(on_time)
     df_days = df.resample('D').max()
     # df_days =
-<<<<<<< HEAD
     print(df_days.tail())
     print(type(df_days['run_time'][-1]))
     new_seconds = df_days['run_time'][-1].total_seconds()
@@ -260,16 +252,6 @@ def display_annual_table(all_temp_data, on_time):
 
     df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
     print(df_days)
-=======
-    # print(df_days.tail())
-    # print(type(df_days['run_time'].max()))
-    # df_days['run_time'] = df['run_time'].astype(int)
-
-
-
-    df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
-
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
 
 
     df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
@@ -449,25 +431,16 @@ def on_off(n, data):
 
 
     df = pd.read_json(data)
-<<<<<<< HEAD
     # print(df.tail())
     # print(type(df.index))
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
     df['run'] = np.where(df['change'] > .2, 'true', 'false')
-=======
-    print(df.tail())
-    # print(type(df.index))
-    df['tvalue'] = df.index
-    df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
     # df = df.loc['2021-202-25' : '2021-202-25']
     # print(type(df['time delta'].iloc[-1]))
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     df['change'] = df['change'].fillna(0)
     df = df.loc[str(today):]
-<<<<<<< HEAD
 
     # df = df.loc[str(today):str(today)]
     # print(df.tail())
@@ -482,19 +455,6 @@ def on_off(n, data):
     # else:
     on_time = run_time_sum / np.timedelta64(1, 's')
     # print(on_time)
-=======
-
-    # df = df.loc[str(today):str(today)]
-    print(df.tail())
-    # df = df.resample('D').sum()
-    # print(df)
-    run_time_sum = df['run_time'].max()
-    print(run_time_sum)
-    # print(type(run_time_sum))
-
-    on_time = run_time_sum / np.timedelta64(1, 's')
-    print(on_time)
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
 #
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     # print(today_tot_seconds)
@@ -575,14 +535,8 @@ def update_run_timer(n, on_time):
     Input('current-interval-component', 'n_intervals')])
 def update_run_timer(off_time, n):
     ot = int(off_time)
-<<<<<<< HEAD
     # print(change)
     # print(n)
-=======
-    print(change)
-    print(n)
-
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
 
 
     # print(ot)
@@ -630,11 +584,7 @@ def current_temp(n):
     change = df['change'].iloc[-1]
     df['tvalue'] = df.index
     df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-<<<<<<< HEAD
     df['run'] = np.where(df['change'] > .2, 'true', 'false')
-=======
-    df['run'] = np.where(df['change'] > .1, 'true', 'false')
->>>>>>> ec1616110f71be3340baec4faf2599220b921ed6
     df['run_tot'] = np.where(df['run'] == 'true', 1, 0)
     df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
     # df['change'] = df['change'].fillna(0)
