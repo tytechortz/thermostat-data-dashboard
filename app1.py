@@ -264,10 +264,14 @@ def display_annual_table(all_temp_data, on_time):
 
     df_days['hours'] = df_days['minutes1'] // 60
     df_days['hours'] = df_days['hours'].round(0).astype(int)
+    df_days['hours'] = pd.to_datetime(df_days['hours'], format='%M')
+    df_days['hours'] = df_days['hours'].apply(lambda x: x.strftime('%M'))
     # hours = df_days['hours'].iloc[0]
 
     df_days['minutes'] = df_days['minutes1'] % 60
     df_days['minutes'] = df_days['minutes'].round(0).astype(int)
+    df_days['minutes'] = pd.to_datetime(df_days['minutes'], format='%M')
+    df_days['minutes'] = df_days['minutes'].apply(lambda x: x.strftime('%M'))
     # minutes = df_days['minutes1'].iloc[0]
     # print(minutes)
     # print(hours)
@@ -279,7 +283,9 @@ def display_annual_table(all_temp_data, on_time):
     # df_days.Day = pd.DatetimeIndex(df.Day).strftime("%Y-%m-%d")
     # df_days['Run Time'] = ('{}:{}''.format(hours, minutes)
     print(df_days)
-    df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs'], axis=1)
+
+    df_days['Run Time'] = df_days['hours'].astype(str)+':'+ df_days['minutes'].astype(str)
+    df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs', 'minutes', 'hours'], axis=1)
     # df_days.loc[df_days.index[-1], 'Run Time' ] = run_clock
     print(df_days)
 
