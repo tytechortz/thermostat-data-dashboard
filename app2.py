@@ -165,6 +165,38 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('max-run-time', 'children'),
+    Input('on-time', 'children'))
+def update_max_left_timer(on_time):
+    ont = on_time
+    # print(ont)
+    t = datetime.datetime.now()
+    # print(t.minute)
+
+    sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
+    # print(sec_left)
+    poss_sec_left = sec_left + ont
+    # print(poss_sec_left)
+    max_minutes = poss_sec_left // 60
+    max_seconds = poss_sec_left % 60
+    max_hours = max_minutes // 60
+    max_minutes = max_minutes % 60
+
+    # poss_sec_left = sec_left + ot
+    # print(poss_sec_left)
+
+    # max_minutes = sec_left // 60
+    # max_seconds = sec_left % 60
+    # max_hours = max_minutes // 60
+    # max_minutes = max_minutes % 60
+
+    return daq.LEDDisplay(
+    label='Max Time',
+    value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
+    color='black'
+    )
+
+@app.callback(
     Output('pct-off-time-clinched', 'children'),
     [Input('on-time', 'children'),
     Input('off-time', 'children')])
@@ -190,8 +222,6 @@ def pct_off_timer(run_count, off_count):
 
     rt = run_count
     ot = off_count
-    print(type(rt))
-    print(ot)
 
     pct_off = ot / (rt + ot) * 100
 
@@ -227,10 +257,7 @@ def update_run_timer(off_time, n):
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    print(rt)
 
-
-    # print(rt)
     minutes = rt // 60
     seconds = rt % 60
     hours = minutes //60
