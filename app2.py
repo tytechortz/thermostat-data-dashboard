@@ -165,15 +165,41 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('pct-off-time', 'children'),
+    [Input('on-time', 'children'),
+    Input('off-time', 'children')])
+def pct_off_timer(run_count, off_count):
+
+    rt = run_count
+    ot = off_count
+    print(type(rt))
+    print(ot)
+
+    pct_off = ot / (rt + ot) * 100
+
+    return daq.LEDDisplay(
+    label='Pct Off',
+    value='{:.2f}'.format(pct_off),
+    color='blue'
+    ),
+
+@app.callback(
     Output('time-off-led', 'children'),
     [Input('off-time', 'children'),
     Input('current-interval-component', 'n_intervals')])
 def update_run_timer(off_time, n):
-    ot = off_time
+    ot = int(off_time)
+
+
+    minutes = ot // 60
+    seconds = ot % 60
+    hours = minutes //60
+    minutes = minutes % 60
+
 
     return daq.LEDDisplay(
     label='Off Time',
-    value=ot,
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='blue'
     ),
 
@@ -183,19 +209,19 @@ def update_run_timer(off_time, n):
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    # print(rt)
+    print(rt)
 
 
     # print(rt)
-    # minutes = rt // 60
-    # seconds = rt % 60
-    # hours = minutes //60
-    # minutes = minutes % 60
+    minutes = rt // 60
+    seconds = rt % 60
+    hours = minutes //60
+    minutes = minutes % 60
 
     return daq.LEDDisplay(
     label='Run Time',
-    value=rt,
-    # value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    # value=rt,
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
     color='red'
     ),
 
@@ -288,11 +314,14 @@ def on_off(n, data):
     current_run_time = time_val['time_delta'].iloc[0]
     current_run_time = int(current_run_time / 1000)
 
-    on_time = str(datetime.timedelta(seconds = current_run_time))
+    on_time = current_run_time
+
+    # on_time = str(datetime.timedelta(seconds = current_run_time))
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    off_time = int(today_tot_seconds - current_run_time)
-    off_time = str(datetime.timedelta(seconds = off_time))
+    off_time = today_tot_seconds - current_run_time
+    # off_time = int(today_tot_seconds - current_run_time)
+    # off_time = str(datetime.timedelta(seconds = off_time))
 
     return on_time, off_time
 
