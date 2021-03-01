@@ -199,7 +199,7 @@ def avg_outside_temp(n):
     Input('current-interval-component', 'n_intervals')])
 def update_ct_led(current_temp, n):
     ct = current_temp
-    print(ct)
+    # print(ct)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
@@ -219,10 +219,73 @@ def update_total_timer(n):
     color='orange'
     )
 
+@app.callback(
+    [Output('on-time', 'children'),
+    Output('off-time', 'children')],
+    [Input('current-interval-component', 'n_intervals'),
+    Input('daily-run-totals', 'children')])
+def on_off(n, data):
+    t = datetime.now()
+    print(t.day)
+    today = pd.to_datetime('today').normalize()
+
+    # print(type(today))
+    # print()
+    # hours = 24 - t.hour - 1
+    # minutes = 60 - t.minute - 1
+    # seconds = 60 - t.second
+
+
+    df = pd.read_json(data)
+    print(df.tail())
+
+    # print(type(df.index))
+    # df['tvalue'] = df.index
+    # df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    # df['run'] = np.where(df['change'] > .2, 'true', 'false')
+    # # df['day'] = pd.
+    # # df = df.loc['2021-202-25' : '2021-202-25']
+    # # print(type(df['time delta'].iloc[-1]))
+    # # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
+    # # print(df.tail(20))
+    #
+    # df['change'] = df['change'].fillna(0)
+    #
+    # # df['run_time'] = df.groupby([df.index.day])
+    # # print(df.tail(20))
+    # df = df.loc[str(today):]
+    #
+    # # df = df.loc[str(today):str(today)]
+    # # print(df.tail())
+    # # df = df.resample('D').sum()
+    # # print(df)
+    # df['run_time'] = df['run_time'].fillna(pd.Timedelta(seconds=0))
+    # run_time_sum = df['run_time'].max()
+    # # print(run_time_sum)
+    # # print(type(run_time_sum))
+    # if run_time_sum == NaT:
+    #     on_time = 0
+    # else:
+    #     on_time = run_time_sum / np.timedelta64(1, 's')
+    # # print(on_time)
+
+    # today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    # print(today_tot_seconds)
+    # off_time = today_tot_seconds - on_time
+    # print(off_time)
+
+    # on_time = 10
+    # off_time = 20
+    print(on_time)
+    print(off_time)
+
+    return on_time, off_time
+
 @app.callback([
     Output('change', 'children'),
     Output('current-temp', 'children'),
-    Output('all-temp-data', 'children')],
+    Output('all-temp-data', 'children'),
+    Output('daily-run-totals', 'children')],
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'])
@@ -250,7 +313,7 @@ def current_temp(n):
     # print(current_temp)
     # print(change)
 
-    return change, current_temp, df.to_json()
+    return change, current_temp, df.to_json(), df_hell.to_json()
 
 
 
