@@ -173,6 +173,22 @@ def outside_temp(n):
         color='red'
     ),
 
+@app.callback(
+    Output('avg-outside-t', 'children'),
+    Input('outside-interval-component', 'n_intervals'))
+def avg_outside_temp(n):
+    df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
+
+    daily_avg = df['Temp'].resample('D').mean()
+
+    today_avg = daily_avg.iloc[-1]
+
+    return daq.LEDDisplay(
+        label='Outside  Avg T',
+        value='{:,.2f}'.format(today_avg),
+        color='red'
+    ),
+
 
 
 if __name__ == '__main__':
