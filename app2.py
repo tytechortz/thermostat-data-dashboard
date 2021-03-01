@@ -39,42 +39,63 @@ minutes = 0
 hours = 0
 
 app.layout = html.Div([
-    html.Div(id='current-temp-led'),
+    # html.Div(id='current-temp-led'),
 
     # dcc.Graph(id='live-graph'),
 
 
     html.Div([
-    #     html.Div([
-    #         html.Div([
-    #             html.Div([
-    #                 html.Div(id='time-on-led'),
-    #             ],
-    #                 className='three columns'
-    #             ),
-    #             html.Div([
-    #                 html.Div(id='time-off-led'),
-    #             ],
-    #                 className='three columns'
-    #             ),
-    #             html.Div([
-    #                 html.Div(id='max-run-time'),
-    #             ],
-    #                 className='three columns'
-    #             ),
-    #             html.Div([
-    #                 html.Div(id='pct-off-time'),
-    #             ],
-    #                 className='three columns'
-    #             ),
-    #         ],
-    #             className='twelve columns'
-    #         ),
-    #     ],
-    #         className='row'
-    #     ),
-    # ]),
-    # html.Div([
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.Div(id='outside-t'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='avg-outside-t'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='current-temp-led'),
+                ],
+                    className='three columns'
+                ),
+            ],
+                className='twelve columns'
+            ),
+        ],
+            className='row'
+        ),
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.Div(id='time-on-led'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='time-off-led'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='max-run-time'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='pct-off-time'),
+                ],
+                    className='three columns'
+                ),
+            ],
+                className='twelve columns'
+            ),
+        ],
+            className='row'
+        ),
         # html.Div([
         #     html.Div([
         #         html.Div([
@@ -98,24 +119,7 @@ app.layout = html.Div([
         # ],
         #     className='row'
         # ),
-        html.Div([
-            html.Div([
-                html.Div([
-                    html.Div(id='outside-t'),
-                ],
-                    className='three columns'
-                ),
-                html.Div([
-                    html.Div(id='avg-outside-t'),
-                ],
-                    className='three columns'
-                ),
-            ],
-                className='twelve columns'
-            ),
-        ],
-            className='row'
-        ),
+
         # html.Div([
         #     html.Div([
         #     #     html.Div([
@@ -188,6 +192,66 @@ def avg_outside_temp(n):
         value='{:,.2f}'.format(today_avg),
         color='red'
     ),
+
+@app.callback(
+    Output('current-temp-led', 'children'),
+    [Input('current-temp', 'children'),
+    Input('current-interval-component', 'n_intervals')])
+def update_ct_led(current_temp, n):
+    ct = current_temp
+    print(ct)
+    return daq.LEDDisplay(
+        label='Current Temp',
+        value='{:,.2f}'.format(ct),
+        color='red'
+    ),
+
+@app.callback([
+    Output('change', 'children'),
+    Output('current-temp', 'children'),
+    Output('all-temp-data', 'children')],
+    Input('current-interval-component', 'n_intervals'))
+def current_temp(n):
+    df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'])
+    print(df.tail())
+    df.set_index(df['Time'], inplace = True)
+    df['Date'] = pd.to_datetime(df['Time'].dt.date)
+
+    f = df['Temp'][-1]
+    # current_temps_list.append(f)
+
+    df['change'] = df['Temp'] - df['Temp'].shift(1)
+    # print(df.tail())
+    # change = df['change'].iloc[-1]
+    df['tvalue'] = df.index
+    df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    df['run'] = np.where(df['change'] > .2, 'true', 'false')
+
+    dfrt = df[['Time','time_delta','run']]
+    dfrt.columns = ['Date', 'time_delta', 'run']
+
+    df_new = dfrt.loc[dfrt['run'] == 'true']
+    # df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
+
+
+    # print(df_hell)
+
+
+    # current_temp = 55
+    change = .77
+
+
+    current_temp = f
+    print(current_temp)
+    print(change)
+
+    # current_temp = df['Temp'].iloc[-1]
+    # previous_temp = df['Temp'].iloc[-2]
+    # print(current_temp)
+
+    # change = current_temp - previous_temp
+
+    return change, current_temp, df.to_json()
 
 
 
