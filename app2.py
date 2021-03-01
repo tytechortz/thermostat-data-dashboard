@@ -165,12 +165,25 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('time-off-led', 'children'),
+    [Input('off-time', 'children'),
+    Input('current-interval-component', 'n_intervals')])
+def update_run_timer(off_time, n):
+    ot = off_time
+
+    return daq.LEDDisplay(
+    label='Off Time',
+    value=ot,
+    color='blue'
+    ),
+
+@app.callback(
     Output('time-on-led', 'children'),
     [Input('interval-component', 'n_intervals'),
     Input('on-time', 'children')])
 def update_run_timer(n, on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
 
     # print(rt)
@@ -268,32 +281,18 @@ def update_total_timer(n):
     Input('daily-run-totals', 'children')])
 def on_off(n, data):
     t = datetime.datetime.now()
-    print(n)
-
-
     df = pd.read_json(data)
-    # print(df.tail())
+
     time_val = df.unstack()
-    # print(time_val)
-    # df = df.rename(columns={'Month', 'Day', 'Time'})
+
     current_run_time = time_val['time_delta'].iloc[0]
     current_run_time = int(current_run_time / 1000)
 
     on_time = str(datetime.timedelta(seconds = current_run_time))
-    # min, sec = divmod(current_run_time, 60)
-    # hour, min = divmod(min, 60)
-    # on_time = "%d:%02d:%02d" % (hour, min, sec)
-    # print(on_time)
-    # print(current_run_time)
-    # print(type(current_run_time))
-    # print(thing)
 
-    # print(df.index)
-    # on_time = 5000
-    off_time= 10000
-
-    # print(on_time)
-    # print(off_time)
+    today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    off_time = int(today_tot_seconds - current_run_time)
+    off_time = str(datetime.timedelta(seconds = off_time))
 
     return on_time, off_time
 

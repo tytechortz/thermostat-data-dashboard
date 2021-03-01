@@ -565,27 +565,27 @@ def on_off(n, data):
 #     color='red'
 #     ),
 #
-# @app.callback(
-#     Output('time-off-led', 'children'),
-#     [Input('off-time', 'children'),
-#     Input('current-interval-component', 'n_intervals')])
-# def update_run_timer(off_time, n):
-#     ot = int(off_time)
-#     # print(change)
-#     # print(n)
-#
-#
-#     # print(ot)
-#     minutes = ot // 60
-#     seconds = ot % 60
-#     hours = minutes // 60
-#     minutes = minutes % 60
-#
-#     return daq.LEDDisplay(
-#     label='Off Time',
-#     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
-#     color='blue'
-#     ),
+@app.callback(
+    Output('time-off-led', 'children'),
+    [Input('off-time', 'children'),
+    Input('current-interval-component', 'n_intervals')])
+def update_run_timer(off_time, n):
+    ot = int(off_time)
+    # print(change)
+    # print(n)
+
+
+    # print(ot)
+    minutes = ot // 60
+    seconds = ot % 60
+    hours = minutes // 60
+    minutes = minutes % 60
+
+    return daq.LEDDisplay(
+    label='Off Time',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='blue'
+    ),
 
 @app.callback(
     Output('current-temp-led', 'children'),
