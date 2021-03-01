@@ -125,19 +125,19 @@ app.layout = html.Div([
         ],
             className='row'
         ),
-        html.Div([
-            html.Div([
-                html.Div([
-                    dt.DataTable(id='temp-datatable-interactivity'),
-                ],
-                    className='five columns'
-                ),
-            ],
-                className='twelve columns'
-            ),
-        ],
-            className='row'
-        ),
+        # html.Div([
+        #     html.Div([
+        #     #     html.Div([
+        #     #         dt.DataTable(id='temp-datatable-interactivity'),
+        #     #     ],
+        #     #         className='five columns'
+        #     #     ),
+        #     # ],
+        #     #     className='twelve columns'
+        #     # ),
+        # ],
+        #     className='row'
+        # ),
     ]),
 
     html.Div([
@@ -406,7 +406,7 @@ def update_total_timer(on_time):
 #     value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
 #     color='black'
 #     )
-
+#
 # @app.callback(
 #     Output('pct-off-time-clinched', 'children'),
 #     [Input('on-time', 'children'),
@@ -442,81 +442,82 @@ def update_total_timer(on_time):
 #     color='blue'
 #     ),
 
-# @app.callback(
-#     [Output('on-time', 'children'),
-#     Output('off-time', 'children')],
-#     [Input('interval-component', 'n_intervals'),
-#     Input('all-temp-data', 'children')])
-# def on_off(n, data):
-#     t = datetime.now()
-#     print(t.day)
-#     today = pd.to_datetime('today').normalize()
-#
-#     # print(type(today))
-#     # print()
-#     # hours = 24 - t.hour - 1
-#     # minutes = 60 - t.minute - 1
-#     # seconds = 60 - t.second
-#
-#
-#     df = pd.read_json(data)
-#
-#     # print(type(df.index))
+@app.callback(
+    [Output('on-time', 'children'),
+    Output('off-time', 'children')],
+    [Input('current-interval-component', 'n_intervals'),
+    Input('all-temp-data', 'children')])
+def on_off(n, data):
+    t = datetime.now()
+    print(t.day)
+    today = pd.to_datetime('today').normalize()
+
+    print(type(today))
+    # print()
+    # hours = 24 - t.hour - 1
+    # minutes = 60 - t.minute - 1
+    # seconds = 60 - t.second
+
+
+    df = pd.read_json(data)
+    print(df)
+
+    # print(type(df.index))
 #     df['tvalue'] = df.index
-#     # df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-#     # df['run'] = np.where(df['change'] > .2, 'true', 'false')
-#     # df['day'] = pd.
-#     # df = df.loc['2021-202-25' : '2021-202-25']
-#     # print(type(df['time delta'].iloc[-1]))
-#     # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
-#     # print(df.tail(20))
+    # df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    # df['run'] = np.where(df['change'] > .2, 'true', 'false')
+    # df['day'] = pd.
+    # df = df.loc['2021-202-25' : '2021-202-25']
+    # print(type(df['time delta'].iloc[-1]))
+    # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
+    # print(df.tail(20))
 #
 #     df['change'] = df['change'].fillna(0)
-#
-#     # df['run_time'] = df.groupby([df.index.day])
-#     # print(df.tail(20))
+
+    # df['run_time'] = df.groupby([df.index.day])
+    # print(df.tail(20))
 #     df = df.loc[str(today):]
-#
-#     # df = df.loc[str(today):str(today)]
-#     # print(df.tail())
-#     # df = df.resample('D').sum()
-#     # print(df)
+
+    # df = df.loc[str(today):str(today)]
+    # print(df.tail())
+    # df = df.resample('D').sum()
+    # print(df)
 #     df['run_time'] = df['run_time'].fillna(pd.Timedelta(seconds=0))
 #     run_time_sum = df['run_time'].max()
-#     # print(run_time_sum)
-#     # print(type(run_time_sum))
-#     # if run_time_sum == NaT:
-#         # on_time = 0
-#     # else:
+    # print(run_time_sum)
+    # print(type(run_time_sum))
+    # if run_time_sum == NaT:
+        # on_time = 0
+    # else:
 #     on_time = run_time_sum / np.timedelta64(1, 's')
-#     # print(on_time)
-# #
-#     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-#     # print(today_tot_seconds)
-#     off_time = today_tot_seconds - on_time
-#     # print(off_time)
+    # print(on_time)
+
+    # today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    # print(today_tot_seconds)
+    # off_time = today_tot_seconds - on_time
+    # print(off_time)
+
+    # t = datetime.now()
+    # ts = start_time
+    # # df = pd.read_json(temp_data)
+    # f = change
+    # if t.hour == 0 and t.minute == 0 and t.second == 0:
+    #     ont.clear()
+    #     offt.clear()
+    # if f > 0.15:
+    #     ont.append(1)
+    # else:
+    #     offt.append(1)
 #
-#     # t = datetime.now()
-#     # ts = start_time
-#     # # df = pd.read_json(temp_data)
-#     # f = change
-#     # if t.hour == 0 and t.minute == 0 and t.second == 0:
-#     #     ont.clear()
-#     #     offt.clear()
-#     # if f > 0.15:
-#     #     ont.append(1)
-#     # else:
-#     #     offt.append(1)
-#
-#     # on_time = len(ont)
-#     # off_time = len(offt)
-#
-#     on_time = 10
-#     off_time = 20
-#     print(on_time)
-#     print(off_time)
-#
-#     return on_time, off_time
+    # on_time = len(ont)
+    # off_time = len(offt)
+
+    on_time = 10
+    off_time = 20
+    print(on_time)
+    print(off_time)
+
+    return on_time, off_time
 
 # @app.callback(
 #     [Output('on-time', 'children'),
@@ -563,7 +564,7 @@ def update_total_timer(on_time):
 #     value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
 #     color='red'
 #     ),
-
+#
 # @app.callback(
 #     Output('time-off-led', 'children'),
 #     [Input('off-time', 'children'),
@@ -586,6 +587,19 @@ def update_total_timer(on_time):
 #     color='blue'
 #     ),
 
+@app.callback(
+    Output('current-temp-led', 'children'),
+    [Input('current-temp', 'children'),
+    Input('current-interval-component', 'n_intervals')])
+def update_leds(current_temp, n):
+    ct = current_temp
+    print(ct)
+    print(n)
+    return daq.LEDDisplay(
+        label='Current Temp',
+        value='{:,.2f}'.format(ct),
+        color='red'
+    ),
 
 @app.callback([
     Output('change', 'children'),
@@ -675,7 +689,7 @@ def current_temp(n):
 
 
     current_temp = f
-    # print(current_temp)
+    print(current_temp)
 
     current_temp = df['Temp'].iloc[-1]
     previous_temp = df['Temp'].iloc[-2]
@@ -688,18 +702,7 @@ def current_temp(n):
 
     return change, current_temp, df.to_json(), df_hell.to_json()
 
-@app.callback(
-    Output('current-temp-led', 'children'),
-    Input('current-temp', 'children'))
-def update_leds(current_temp):
-    ct = current_temp
-    # print(ct)
-    # print(n)
-    return daq.LEDDisplay(
-        label='Current Temp',
-        value='{:,.2f}'.format(ct),
-        color='red'
-    ),
+
 
 
 if __name__ == '__main__':
