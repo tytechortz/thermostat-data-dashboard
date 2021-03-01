@@ -164,6 +164,25 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('total-time-left', 'children'),
+    Input('on-time', 'children'))
+def update_total_timer(on_time):
+    ot = on_time
+    t = datetime.now()
+
+    hours = 24 - t.hour - 1
+    minutes = 60 - t.minute - 1
+    seconds = 60 - t.second
+
+    # print(seconds)
+
+    return daq.LEDDisplay(
+    label='Time Left',
+    value='{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds),
+    color='orange'
+    )
+
+@app.callback(
     Output('outside-t', 'children'),
     Input('outside-interval-component', 'n_intervals'))
 def outside_temp(n):
@@ -226,58 +245,30 @@ def update_total_timer(n):
     Input('daily-run-totals', 'children')])
 def on_off(n, data):
     t = datetime.now()
-    print(t.day)
-    today = pd.to_datetime('today').normalize()
-
-    # print(type(today))
-    # print()
-    # hours = 24 - t.hour - 1
-    # minutes = 60 - t.minute - 1
-    # seconds = 60 - t.second
+    print(n)
 
 
     df = pd.read_json(data)
     print(df.tail())
-
-    # print(type(df.index))
-    # df['tvalue'] = df.index
-    # df['time delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    # df['run'] = np.where(df['change'] > .2, 'true', 'false')
-    # # df['day'] = pd.
-    # # df = df.loc['2021-202-25' : '2021-202-25']
-    # # print(type(df['time delta'].iloc[-1]))
-    # # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
-    # # print(df.tail(20))
-    #
-    # df['change'] = df['change'].fillna(0)
-    #
-    # # df['run_time'] = df.groupby([df.index.day])
-    # # print(df.tail(20))
-    # df = df.loc[str(today):]
-    #
-    # # df = df.loc[str(today):str(today)]
-    # # print(df.tail())
-    # # df = df.resample('D').sum()
-    # # print(df)
-    # df['run_time'] = df['run_time'].fillna(pd.Timedelta(seconds=0))
-    # run_time_sum = df['run_time'].max()
-    # # print(run_time_sum)
-    # # print(type(run_time_sum))
-    # if run_time_sum == NaT:
-    #     on_time = 0
-    # else:
-    #     on_time = run_time_sum / np.timedelta64(1, 's')
-    # # print(on_time)
-
-    # today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    # print(today_tot_seconds)
-    # off_time = today_tot_seconds - on_time
-    # print(off_time)
-
-    # on_time = 10
-    # off_time = 20
+    time_val = df.unstack()
+    print(time_val)
+    # df = df.rename(columns={'Month', 'Day', 'Time'})
+    current_run_time = time_val['time_delta'].iloc[0]
+    current_run_time = int(current_run_time / 1000)
+    min, sec = divmod(current_run_time, 60)
+    hour, min = divmod(min, 60)
+    on_time = "%d:%02d:%02d" % (hour, min, sec)
     print(on_time)
-    print(off_time)
+    print(current_run_time)
+    print(type(current_run_time))
+    # print(thing)
+
+    # print(df.index)
+    # on_time = 5000
+    off_time= 10000
+
+    # print(on_time)
+    # print(off_time)
 
     return on_time, off_time
 
