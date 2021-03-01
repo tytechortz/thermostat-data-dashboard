@@ -96,29 +96,29 @@ app.layout = html.Div([
         ],
             className='row'
         ),
-        # html.Div([
-        #     html.Div([
-        #         html.Div([
-        #             html.Div(id='total-time'),
-        #         ],
-        #             className='three columns'
-        #         ),
-        #         html.Div([
-        #             html.Div(id='total-time-left'),
-        #         ],
-        #             className='three columns'
-        #         ),
-        #         html.Div([
-        #             html.Div(id='pct-off-time-clinched'),
-        #         ],
-        #             className='three columns'
-        #         ),
-        #     ],
-        #         className='twelve columns'
-        #     ),
-        # ],
-        #     className='row'
-        # ),
+        html.Div([
+            html.Div([
+                html.Div([
+                    html.Div(id='total-time'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='total-time-left'),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
+                    html.Div(id='pct-off-time-clinched'),
+                ],
+                    className='three columns'
+                ),
+            ],
+                className='twelve columns'
+            ),
+        ],
+            className='row'
+        ),
 
         # html.Div([
         #     html.Div([
@@ -206,6 +206,19 @@ def update_ct_led(current_temp, n):
         color='red'
     ),
 
+@app.callback(
+    Output('total-time', 'children'),
+    Input('current-interval-component', 'n_intervals'))
+def update_total_timer(n):
+
+    now = datetime.now().strftime("%H:%M:%S")
+
+    return daq.LEDDisplay(
+    label='Time',
+    value=now,
+    color='orange'
+    )
+
 @app.callback([
     Output('change', 'children'),
     Output('current-temp', 'children'),
@@ -213,16 +226,15 @@ def update_ct_led(current_temp, n):
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'])
-    print(df.tail())
+    # print(df.tail())
     df.set_index(df['Time'], inplace = True)
     df['Date'] = pd.to_datetime(df['Time'].dt.date)
 
     f = df['Temp'][-1]
-    # current_temps_list.append(f)
 
     df['change'] = df['Temp'] - df['Temp'].shift(1)
     # print(df.tail())
-    # change = df['change'].iloc[-1]
+    change = df['change'].iloc[-1]
     df['tvalue'] = df.index
     df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
     df['run'] = np.where(df['change'] > .2, 'true', 'false')
@@ -231,25 +243,12 @@ def current_temp(n):
     dfrt.columns = ['Date', 'time_delta', 'run']
 
     df_new = dfrt.loc[dfrt['run'] == 'true']
-    # df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
-
+    df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
 
     # print(df_hell)
-
-
-    # current_temp = 55
-    change = .77
-
-
     current_temp = f
-    print(current_temp)
-    print(change)
-
-    # current_temp = df['Temp'].iloc[-1]
-    # previous_temp = df['Temp'].iloc[-2]
     # print(current_temp)
-
-    # change = current_temp - previous_temp
+    # print(change)
 
     return change, current_temp, df.to_json()
 
