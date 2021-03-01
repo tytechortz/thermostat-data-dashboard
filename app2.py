@@ -165,6 +165,24 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('pct-off-time-clinched', 'children'),
+    [Input('on-time', 'children'),
+    Input('off-time', 'children')])
+def pct_off_timer(run_count, off_count):
+
+    rt = int(run_count)
+    ot = int(off_count)
+
+    pct_off = ot / (rt + ot) * 100
+    pct_off_clinched = ot / 86400 * 100
+
+    return daq.LEDDisplay(
+    label=' Min Pct Off',
+    value='{:.2f}'.format(pct_off_clinched),
+    color='blue'
+    ),
+
+@app.callback(
     Output('pct-off-time', 'children'),
     [Input('on-time', 'children'),
     Input('off-time', 'children')])
