@@ -10,6 +10,7 @@ import plotly.express as px
 from dash.dependencies import Input, Output
 import json
 from datetime import datetime
+import datetime
 import math
 import time
 import requests
@@ -20,7 +21,7 @@ import pandas as pd
 
 offt = []
 ont = []
-start_time = datetime.now().minute
+# start_time = datetime.now().minute
 current_temps_list = []
 run_time = 86400
 
@@ -168,7 +169,7 @@ app.layout = html.Div([
     Input('on-time', 'children'))
 def update_total_timer(on_time):
     ot = on_time
-    t = datetime.now()
+    t = datetime.datetime.now()
 
     hours = 24 - t.hour - 1
     minutes = 60 - t.minute - 1
@@ -230,7 +231,7 @@ def update_ct_led(current_temp, n):
     Input('current-interval-component', 'n_intervals'))
 def update_total_timer(n):
 
-    now = datetime.now().strftime("%H:%M:%S")
+    now = datetime.datetime.now().strftime("%H:%M:%S")
 
     return daq.LEDDisplay(
     label='Time',
@@ -244,7 +245,7 @@ def update_total_timer(n):
     [Input('current-interval-component', 'n_intervals'),
     Input('daily-run-totals', 'children')])
 def on_off(n, data):
-    t = datetime.now()
+    t = datetime.datetime.now()
     print(n)
 
 
@@ -255,9 +256,11 @@ def on_off(n, data):
     # df = df.rename(columns={'Month', 'Day', 'Time'})
     current_run_time = time_val['time_delta'].iloc[0]
     current_run_time = int(current_run_time / 1000)
-    min, sec = divmod(current_run_time, 60)
-    hour, min = divmod(min, 60)
-    on_time = "%d:%02d:%02d" % (hour, min, sec)
+
+    on_time = str(datetime.timedelta(seconds = current_run_time))
+    # min, sec = divmod(current_run_time, 60)
+    # hour, min = divmod(min, 60)
+    # on_time = "%d:%02d:%02d" % (hour, min, sec)
     print(on_time)
     print(current_run_time)
     print(type(current_run_time))
