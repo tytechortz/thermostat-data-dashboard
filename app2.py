@@ -228,7 +228,33 @@ def display_annual_table(temp_data):
     print(df)
     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
     df = df.drop('index', 1)
+    df['seconds'] = df['time_delta'] / 1000
+    df = df.drop('time_delta', 1)
+
     print(df)
+
+    # print(rs)
+
+    # def seconds_to_time(self):
+    #     rs = df['seconds']
+    #     minutes = rs // 60
+    #     seconds = rs % 60
+    #     hours = minutes //60
+    #     minutes = minutes % 60
+    #
+    #     return '{:02}:{:02}:{:02}'.format(hours, minutes, seconds)
+        # return hours
+    #
+    df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
+    df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
+    # df['Run Time'] = df['seconds'].apply(seconds_to_time)
+    # print(df['Run Time'].iloc[-1])
+
+
+    #
+    # df['Run Time'] =
+    #
+    # value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
     # print(type(df.index[0]))
     # print(df.index.apply(lambda x: x[1,3]))
     # print(df.index.iloc[1])
