@@ -221,7 +221,28 @@ def display_annual_table(temp_data):
     # print(df.columns)
     # df['run'] = np.where(df['change'] > .2, 'true', 'false')
     # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
-    # print(df)
+    print(df)
+    # time_val = df.unstack()
+    print(type(df.index))
+    df.reset_index(inplace=True)
+    print(df)
+    df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
+    df = df.drop('index', 1)
+    print(df)
+    # print(type(df.index[0]))
+    # print(df.index.apply(lambda x: x[1,3]))
+    # print(df.index.iloc[1])
+    # df_days = pd.concat(df.index(row[df.index]))
+    # print(type(time_val))
+    # print(type(time_val.index[0]))
+    # df_days = time_val.index.tolist()
+    # df_days = pd.DataFrame(time_val.values(), index=MultiIndex(time_val.keys(), names=['Month', 'Day']))
+    # print(df_days)
+
+    # current_run_time = time_val['time_delta'].iloc[-1]
+    # current_run_time = int(current_run_time / 1000)
+
+
     # df1 = df.groupby(pd.Grouper(key=df['Date'], freq='D'))
     # print(df1)
     # df1['run_sum'] = df1['run_time'].cumsum()
@@ -495,6 +516,7 @@ def on_off(n, data):
     df = pd.read_json(data)
 
     time_val = df.unstack()
+    # print(time_val.columns)
 
     current_run_time = time_val['time_delta'].iloc[-1]
     current_run_time = int(current_run_time / 1000)
@@ -529,16 +551,17 @@ def current_temp(n):
     change = df['change'].iloc[-1]
     df['tvalue'] = df.index
     df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    print(df.tail())
+    # print(df.tail())
     df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 119, 'true', 'false' )))
 
     dfrt = df[['Time','time_delta','run']]
     dfrt.columns = ['Date', 'time_delta', 'run']
+    # print(df)
 
     df_new = dfrt.loc[dfrt['run'] == 'true']
     df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
 
-    print(df_hell)
+    # print(df_hell)
     current_temp = f
     # print(current_temp)
     # print(change)
