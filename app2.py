@@ -247,6 +247,10 @@ def display_annual_table(temp_data):
     #
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
     df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
+    df['Date'] = df['Month'] +'-'+df['Day']
+    df = df.drop(['Month', 'Day', 'seconds'], axis=1)
+    df = df[['Date', 'Run Time']]
+    # df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
     # df['Run Time'] = df['seconds'].apply(seconds_to_time)
     # print(df['Run Time'].iloc[-1])
 
