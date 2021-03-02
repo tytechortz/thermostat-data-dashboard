@@ -40,10 +40,8 @@ minutes = 0
 hours = 0
 
 app.layout = html.Div([
-    # html.Div(id='current-temp-led'),
 
     # dcc.Graph(id='live-graph'),
-
 
     html.Div([
         html.Div([
@@ -110,6 +108,11 @@ app.layout = html.Div([
                     className='three columns'
                 ),
                 html.Div([
+                    html.Div(html.P('-', id='placeholder')),
+                ],
+                    className='three columns'
+                ),
+                html.Div([
                     html.Div(id='pct-off-time-clinched'),
                 ],
                     className='three columns'
@@ -120,20 +123,19 @@ app.layout = html.Div([
         ],
             className='row'
         ),
-
-        # html.Div([
-        #     html.Div([
-        #     #     html.Div([
-        #     #         dt.DataTable(id='temp-datatable-interactivity'),
-        #     #     ],
-        #     #         className='five columns'
-        #     #     ),
-        #     # ],
-        #     #     className='twelve columns'
-        #     # ),
-        # ],
-        #     className='row'
-        # ),
+        html.Div([
+            html.Div([
+                html.Div([
+                    dt.DataTable(id='temp-datatable-interactivity'),
+                ],
+                    className='five columns'
+                ),
+            ],
+                className='twelve columns'
+            ),
+        ],
+            className='row'
+        ),
     ]),
 
     html.Div([
@@ -163,6 +165,144 @@ app.layout = html.Div([
     html.Div(id='daily-run-totals', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
 ])
+
+@app.callback(
+    Output('temp-datatable-interactivity', 'table'),
+    Input('interval-component', 'n_intervals'))
+def display_daily_table(n):
+
+
+    return dt.DataTable(id='temp-datatable-interactivity',
+    data=[{}],
+    columns=[{}],
+    fixed_rows={'headers': True, 'data': 0},
+    style_cell={'textAlign': 'left22', 'backgroundColor': 'rgb(30, 30, 30)'},
+    style_cell_conditional=[
+        {'if': {'column_id': 'Date'},
+        'width':'100px'},
+        {'if': {'column_id': 'Value'},
+        'width':'100px'},
+    ],
+    style_data_conditional=[
+        {
+        'if': {'row_index': 'odd'},
+        'backgroundColor': 'rgb(30, 30, 30)'
+        },
+    ],
+    style_header={
+    'backgroundColor': 'rgb(230, 230, 230)',
+    'fontWeight': 'bold'
+    },
+
+    sort_action="native",
+    sort_mode="multi",
+    column_selectable="single",
+    selected_columns=[],
+    selected_rows=[],
+
+    page_current= 0,
+    page_size= 10,
+    )
+
+@app.callback([
+    Output('temp-datatable-interactivity', 'data'),
+    Output('temp-datatable-interactivity', 'columns')],
+    Input('daily-run-totals', 'children'))
+def display_annual_table(temp_data):
+    df = pd.read_json(temp_data)
+    # df = df.unstack()
+    t = datetime.datetime.now()
+    # print(df.tail())
+
+
+    # df['tvalue'] = df.index
+
+    # df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    # print(df.columns)
+    # df['run'] = np.where(df['change'] > .2, 'true', 'false')
+    # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
+    # print(df)
+    # df1 = df.groupby(pd.Grouper(key=df['Date'], freq='D'))
+    # print(df1)
+    # df1['run_sum'] = df1['run_time'].cumsum()
+
+    # print(df.tail())
+    # print(df.columns)
+    # df1['run_time'] = df1['run_time'].fillna(0)
+    # df1['change'] = df1['change'].fillna(0)
+    # print(df.tail())
+    # print(df.columns)
+
+    # print(t)
+    today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    # run_time_sum = df['run_time'].max()
+    # print(today_tot_seconds)
+    # pd.set_option("display.max_rows", None)
+    # print(type(df['run_time'].iloc[-1]))
+    # print(df['run_time'].max())
+
+    # on_time = on_time
+    # # print(on_time)
+    # df_days = df.resample('D').max()
+    # run_time_sum = df['run_time'].max()
+    # # df_days =
+    # # print(df_days.tail(20))
+    # # print(type(df_days['run_time'][-1]))
+    # # new_seconds = df_days['run_time'][-1].total_seconds()
+    # df_days['seconds'] = df_days['run_time'].dt.total_seconds()
+    # # print(df_days)
+    # df_days['Pct. On'] = df_days['seconds'] / 86400
+    # df_days['Pct. On'] = df_days['Pct. On'].map("{:.2%}".format)
+    # # df_days['run_time'] = df['run_time'].astype(int)
+    #
+    #
+    #
+    # df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
+    #
+    #
+    #
+    # df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
+    # # df_days['run time'] = df_days['run_tot'] * 10
+    # # df_days['run time'] = df_days['run_time'].astype(int)
+    # #
+    # df_days['minutes1'] = df_days['seconds'] // 60
+    #
+    # df_days['secs'] = df_days['seconds'] % 60
+    #
+    # df_days['hours'] = df_days['minutes1'] // 60
+    # df_days['hours'] = df_days['hours'].round(0).astype(int)
+    # df_days['hours'] = pd.to_datetime(df_days['hours'], format='%M')
+    # df_days['hours'] = df_days['hours'].apply(lambda x: x.strftime('%M'))
+    # # hours = df_days['hours'].iloc[0]
+    #
+    # df_days['minutes'] = df_days['minutes1'] % 60
+    # df_days['minutes'] = df_days['minutes'].round(0).astype(int)
+    # df_days['minutes'] = pd.to_datetime(df_days['minutes'], format='%M')
+    # df_days['minutes'] = df_days['minutes'].apply(lambda x: x.strftime('%M'))
+    # # minutes = df_days['minutes1'].iloc[0]
+    # # print(minutes)
+    # # print(hours)
+    # # run_clock = '{}:{}'.format(hours, minutes)
+    # # print(run_clock)
+    # # print(df_days['run_time'].iloc[-1])
+    # # print(type(df_days['run_time'].iloc[-1]))
+    # # df_days['run_time'] = pd.to_datetime(df['run_time'], format="%H:%M:%S")
+    # # df_days.Day = pd.DatetimeIndex(df.Day).strftime("%Y-%m-%d")
+    # # df_days['Run Time'] = ('{}:{}''.format(hours, minutes)
+    # # print(df_days)
+    #
+    # df_days['Run Time'] = df_days['hours'].astype(str)+':'+ df_days['minutes'].astype(str)
+    # df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs', 'minutes', 'hours'], axis=1)
+    # df_days = df_days[['Day', 'Run Time', 'Pct. On']]
+    # df_days.loc[df_days.index[-1], 'Run Time' ] = run_clock
+    # print(df_days)
+
+
+    columns=[
+        {"name": i, "id": i, "selectable": True} for i in df.columns
+    ]
+
+    return df.to_dict('records'), columns
 
 @app.callback(
     Output('max-run-time', 'children'),
@@ -356,7 +496,7 @@ def on_off(n, data):
 
     time_val = df.unstack()
 
-    current_run_time = time_val['time_delta'].iloc[0]
+    current_run_time = time_val['time_delta'].iloc[-1]
     current_run_time = int(current_run_time / 1000)
 
     on_time = current_run_time
@@ -389,7 +529,8 @@ def current_temp(n):
     change = df['change'].iloc[-1]
     df['tvalue'] = df.index
     df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    df['run'] = np.where(df['change'] > .2, 'true', 'false')
+    print(df.tail())
+    df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 119, 'true', 'false' )))
 
     dfrt = df[['Time','time_delta','run']]
     dfrt.columns = ['Date', 'time_delta', 'run']
@@ -397,7 +538,7 @@ def current_temp(n):
     df_new = dfrt.loc[dfrt['run'] == 'true']
     df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
 
-    # print(df_hell)
+    print(df_hell)
     current_temp = f
     # print(current_temp)
     # print(change)
