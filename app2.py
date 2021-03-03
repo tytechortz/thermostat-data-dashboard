@@ -210,144 +210,39 @@ def display_daily_table(n):
     Input('daily-run-totals', 'children'))
 def display_annual_table(temp_data):
     df = pd.read_json(temp_data)
-    # df = df.unstack()
+
     t = datetime.datetime.now()
-    # print(df.tail())
 
-
-    # df['tvalue'] = df.index
-
-    # df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    # print(df.columns)
-    # df['run'] = np.where(df['change'] > .2, 'true', 'false')
-    # df['run_time'] = df[df['run'] == 'true']['time delta'].cumsum()
-    print(df)
-    # time_val = df.unstack()
     print(type(df.index))
     df.reset_index(inplace=True)
-    print(df)
+
     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
     df = df.drop('index', 1)
     df['seconds'] = df['time_delta'] / 1000
+    today_run_seconds = df['time_delta'].iloc[-1] / 1000
     df = df.drop('time_delta', 1)
 
+    today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    pct_on = today_tot_seconds / today_run_seconds
+    print(pct_on)
+
+
+    print(today_run_seconds)
+
     print(df)
+    # pd.options.display.float_format = '{:,.2f}'.format
 
-    # print(rs)
-
-    # def seconds_to_time(self):
-    #     rs = df['seconds']
-    #     minutes = rs // 60
-    #     seconds = rs % 60
-    #     hours = minutes //60
-    #     minutes = minutes % 60
-    #
-    #     return '{:02}:{:02}:{:02}'.format(hours, minutes, seconds)
-        # return hours
-    #
+    df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
+    df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
     df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
     df['Date'] = df['Month'] +'-'+df['Day']
     df = df.drop(['Month', 'Day', 'seconds'], axis=1)
-    df = df[['Date', 'Run Time']]
-    # df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
-    # df['Run Time'] = df['seconds'].apply(seconds_to_time)
-    # print(df['Run Time'].iloc[-1])
+    df = df[['Date', 'Pct Off', 'Run Time']]
 
 
-    #
-    # df['Run Time'] =
-    #
-    # value='{:02d}:{:02d}:{:02d}'.format(max_hours, max_minutes, max_seconds),
-    # print(type(df.index[0]))
-    # print(df.index.apply(lambda x: x[1,3]))
-    # print(df.index.iloc[1])
-    # df_days = pd.concat(df.index(row[df.index]))
-    # print(type(time_val))
-    # print(type(time_val.index[0]))
-    # df_days = time_val.index.tolist()
-    # df_days = pd.DataFrame(time_val.values(), index=MultiIndex(time_val.keys(), names=['Month', 'Day']))
-    # print(df_days)
 
-    # current_run_time = time_val['time_delta'].iloc[-1]
-    # current_run_time = int(current_run_time / 1000)
-
-
-    # df1 = df.groupby(pd.Grouper(key=df['Date'], freq='D'))
-    # print(df1)
-    # df1['run_sum'] = df1['run_time'].cumsum()
-
-    # print(df.tail())
-    # print(df.columns)
-    # df1['run_time'] = df1['run_time'].fillna(0)
-    # df1['change'] = df1['change'].fillna(0)
-    # print(df.tail())
-    # print(df.columns)
-
-    # print(t)
-    today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    # run_time_sum = df['run_time'].max()
     # print(today_tot_seconds)
-    # pd.set_option("display.max_rows", None)
-    # print(type(df['run_time'].iloc[-1]))
-    # print(df['run_time'].max())
-
-    # on_time = on_time
-    # # print(on_time)
-    # df_days = df.resample('D').max()
-    # run_time_sum = df['run_time'].max()
-    # # df_days =
-    # # print(df_days.tail(20))
-    # # print(type(df_days['run_time'][-1]))
-    # # new_seconds = df_days['run_time'][-1].total_seconds()
-    # df_days['seconds'] = df_days['run_time'].dt.total_seconds()
-    # # print(df_days)
-    # df_days['Pct. On'] = df_days['seconds'] / 86400
-    # df_days['Pct. On'] = df_days['Pct. On'].map("{:.2%}".format)
-    # # df_days['run_time'] = df['run_time'].astype(int)
-    #
-    #
-    #
-    # df_days = df_days.drop(['Temp', 'change', 'run_tot', 'tvalue', 'run', 'time delta'], axis=1)
-    #
-    #
-    #
-    # df_days['Day'] = df_days.index.strftime('%Y-%m-%d')
-    # # df_days['run time'] = df_days['run_tot'] * 10
-    # # df_days['run time'] = df_days['run_time'].astype(int)
-    # #
-    # df_days['minutes1'] = df_days['seconds'] // 60
-    #
-    # df_days['secs'] = df_days['seconds'] % 60
-    #
-    # df_days['hours'] = df_days['minutes1'] // 60
-    # df_days['hours'] = df_days['hours'].round(0).astype(int)
-    # df_days['hours'] = pd.to_datetime(df_days['hours'], format='%M')
-    # df_days['hours'] = df_days['hours'].apply(lambda x: x.strftime('%M'))
-    # # hours = df_days['hours'].iloc[0]
-    #
-    # df_days['minutes'] = df_days['minutes1'] % 60
-    # df_days['minutes'] = df_days['minutes'].round(0).astype(int)
-    # df_days['minutes'] = pd.to_datetime(df_days['minutes'], format='%M')
-    # df_days['minutes'] = df_days['minutes'].apply(lambda x: x.strftime('%M'))
-    # # minutes = df_days['minutes1'].iloc[0]
-    # # print(minutes)
-    # # print(hours)
-    # # run_clock = '{}:{}'.format(hours, minutes)
-    # # print(run_clock)
-    # # print(df_days['run_time'].iloc[-1])
-    # # print(type(df_days['run_time'].iloc[-1]))
-    # # df_days['run_time'] = pd.to_datetime(df['run_time'], format="%H:%M:%S")
-    # # df_days.Day = pd.DatetimeIndex(df.Day).strftime("%Y-%m-%d")
-    # # df_days['Run Time'] = ('{}:{}''.format(hours, minutes)
-    # # print(df_days)
-    #
-    # df_days['Run Time'] = df_days['hours'].astype(str)+':'+ df_days['minutes'].astype(str)
-    # df_days = df_days.drop(['run_time','seconds', 'minutes1', 'secs', 'minutes', 'hours'], axis=1)
-    # df_days = df_days[['Day', 'Run Time', 'Pct. On']]
-    # df_days.loc[df_days.index[-1], 'Run Time' ] = run_clock
-    # print(df_days)
-
 
     columns=[
         {"name": i, "id": i, "selectable": True} for i in df.columns
@@ -373,13 +268,6 @@ def update_max_left_timer(on_time):
     max_hours = max_minutes // 60
     max_minutes = max_minutes % 60
 
-    # poss_sec_left = sec_left + ot
-    # print(poss_sec_left)
-
-    # max_minutes = sec_left // 60
-    # max_seconds = sec_left % 60
-    # max_hours = max_minutes // 60
-    # max_minutes = max_minutes % 60
 
     return daq.LEDDisplay(
     label='Max Time',
@@ -553,12 +441,8 @@ def on_off(n, data):
 
     on_time = current_run_time
 
-    # on_time = str(datetime.timedelta(seconds = current_run_time))
-
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     off_time = today_tot_seconds - current_run_time
-    # off_time = int(today_tot_seconds - current_run_time)
-    # off_time = str(datetime.timedelta(seconds = off_time))
 
     return on_time, off_time
 
@@ -586,15 +470,11 @@ def current_temp(n):
 
     dfrt = df[['Time','time_delta','run']]
     dfrt.columns = ['Date', 'time_delta', 'run']
-    # print(df)
 
     df_new = dfrt.loc[dfrt['run'] == 'true']
     df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
 
-    # print(df_hell)
     current_temp = f
-    # print(current_temp)
-    # print(change)
 
     return change, current_temp, df.to_json(), df_hell.to_json()
 
