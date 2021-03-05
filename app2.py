@@ -399,7 +399,7 @@ def avg_outside_temp(n):
 
     daily_avg = df['Temp'].resample('D').mean()
     daily_avg = df.loc[start:today]
-    # print(daily_avg)
+    print(daily_avg)
     today_avg = daily_avg.iloc[-1]
 
     return daq.LEDDisplay(
