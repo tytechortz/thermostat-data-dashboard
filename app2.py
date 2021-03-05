@@ -28,6 +28,10 @@ run_time = 86400
 url = "http://10.0.1.7:8080"
 urlin = "http://10.0.1.6:5000"
 
+start = '2021-03-01'
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+print(today)
+
 # c=1
 # print(on)
 pd.options.display.float_format = '{:,.2f}'.format
@@ -160,7 +164,7 @@ app.layout = html.Div([
     # html.Div(id='start-time', style={'display':'none'}),
     html.Div(id='on-time', style={'display':'none'}),
     html.Div(id='off-time', style={'display':'none'}),
-    # html.Div(id='max-left', style={'display':'none'}),
+    html.Div(id='daily-avg', style={'display':'none'}),
     html.Div(id='current-temp', style={'display':'none'}),
     html.Div(id='daily-run-totals', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
@@ -207,13 +211,17 @@ def display_daily_table(n):
 @app.callback([
     Output('temp-datatable-interactivity', 'data'),
     Output('temp-datatable-interactivity', 'columns')],
-    Input('daily-run-totals', 'children'))
-def display_annual_table(temp_data):
+    [Input('daily-run-totals', 'children'),
+    Input('daily-avg', 'children')])
+def display_annual_table(temp_data, daily_avg):
     df = pd.read_json(temp_data)
+
+    daily_avg = pd.read_csv(daily_avg)
+    # print(daily_avg)
 
     t = datetime.datetime.now()
 
-    print(type(df.index))
+    # print(type(df.index))
     df.reset_index(inplace=True)
 
     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
@@ -224,12 +232,12 @@ def display_annual_table(temp_data):
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
     pct_on = today_tot_seconds / today_run_seconds
-    print(pct_on)
+    # print(pct_on)
 
 
-    print(today_run_seconds)
+    # print(today_run_seconds)
 
-    print(df)
+    # print(df)
     # pd.options.display.float_format = '{:,.2f}'.format
 
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
@@ -383,20 +391,22 @@ def outside_temp(n):
     ),
 
 @app.callback(
-    Output('avg-outside-t', 'children'),
+    [Output('avg-outside-t', 'children'),
+    Output('daily-avg', 'children')],
     Input('outside-interval-component', 'n_intervals'))
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
 
     daily_avg = df['Temp'].resample('D').mean()
-
+    daily_avg = df.loc[start:today]
+    # print(daily_avg)
     today_avg = daily_avg.iloc[-1]
 
     return daq.LEDDisplay(
         label='Outside  Avg T',
         value='{:,.2f}'.format(today_avg),
         color='red'
-    ),
+    ), daily_avg.to_json()
 
 @app.callback(
     Output('current-temp-led', 'children'),
@@ -466,7 +476,7 @@ def current_temp(n):
     df['tvalue'] = df.index
     df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
     # print(df.tail())
-    df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 119, 'true', 'false' )))
+    df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 118, 'true', 'false' )))
 
     dfrt = df[['Time','time_delta','run']]
     dfrt.columns = ['Date', 'time_delta', 'run']
