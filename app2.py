@@ -19,6 +19,8 @@ import numpy as np
 
 import pandas as pd
 
+# t = datetime.datetime.now()
+
 offt = []
 ont = []
 # start_time = datetime.now().minute
@@ -28,9 +30,9 @@ run_time = 86400
 url = "http://10.0.1.7:8080"
 urlin = "http://10.0.1.6:5000"
 
-start = '2021-03-01'
+start = '2021-03-01 00:00:00.00000'
 today = datetime.datetime.now().strftime("%Y-%m-%d")
-print(today)
+# print(today)
 
 # c=1
 # print(on)
@@ -216,11 +218,30 @@ def display_daily_table(n):
 def display_annual_table(temp_data, daily_avg):
     df = pd.read_json(temp_data)
 
-    daily_avg = pd.read_csv(daily_avg)
-    # print(daily_avg)
+    d_avg = pd.read_json(daily_avg)
+    # d_avg.reset_index()
+
+    # df['Time'] = df['Time'].dt.strftime('%m-%d')
+    print(d_avg)
+    print(d_avg['Time'].iloc[-1])
+    d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
+    d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
+    print(type(d_avg['Time'].iloc[-1]))
+    d_avg['Time'] = d_avg['Time'].dt.strftime('%-m-%-d')
+    d_avg = d_avg.rename(columns = {'Time': 'Date'})
+    # d_avg['Time'] =
+    # d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
+    print(d_avg)
+    # d_avg.columns = ['Day', 'Temp']
+    # print(type(d_avg.index))
+    # d_avg = d_avg.set_index(pd.to_datetime(d_avg.index))
+    #
+    # # d_avg =
+    # print(type(d_avg.index))
+    # print(d_avg[-1])
 
     t = datetime.datetime.now()
-
+    print(t)
     # print(type(df.index))
     df.reset_index(inplace=True)
 
@@ -237,17 +258,24 @@ def display_annual_table(temp_data, daily_avg):
 
     # print(today_run_seconds)
 
-    # print(df)
+    print(df)
     # pd.options.display.float_format = '{:,.2f}'.format
 
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
     df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
     df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
-    df['Date'] = df['Month'] +'-'+df['Day']
-    df = df.drop(['Month', 'Day', 'seconds'], axis=1)
-    df = df[['Date', 'Pct Off', 'Run Time']]
 
+    # df['Avg. T'] = daily_avg.apply(lambda x: x)
+
+    df['Date'] = df['Month'] +'-'+df['Day']
+    # df = df.drop(['Month', 'Day', 'seconds'], axis=1)
+    df = df[['Date', 'Pct Off', 'Run Time']]
+    df = pd.merge(df, d_avg, on='Date', how = 'outer')
+    # dfa = pd.concat([df, d_avg], axis=1)
+    # df = pd.concat([df, d_avg], axis=1, ignore_index=True)
+    # df = df.append(d_avg, ignore_index=True)
+    print(df)
 
 
     # print(today_tot_seconds)
@@ -265,7 +293,7 @@ def update_max_left_timer(on_time):
     ont = on_time
     # print(ont)
     t = datetime.datetime.now()
-    # print(t.minute)
+    # print(t)
 
     sec_left = 86400 - ((t.hour * 3600) + (t.minute * 60) + t.second)
     # print(sec_left)
@@ -320,9 +348,8 @@ def pct_off_timer(run_count, off_count):
 
 @app.callback(
     Output('time-off-led', 'children'),
-    [Input('off-time', 'children'),
-    Input('current-interval-component', 'n_intervals')])
-def update_run_timer(off_time, n):
+    Input('off-time', 'children'))
+def update_run_timer(off_time):
     ot = int(off_time)
 
 
@@ -340,9 +367,8 @@ def update_run_timer(off_time, n):
 
 @app.callback(
     Output('time-on-led', 'children'),
-    [Input('interval-component', 'n_intervals'),
-    Input('on-time', 'children')])
-def update_run_timer(n, on_time):
+    Input('on-time', 'children'))
+def update_run_timer(on_time):
     rt = on_time
 
     minutes = rt // 60
@@ -359,9 +385,9 @@ def update_run_timer(n, on_time):
 
 @app.callback(
     Output('total-time-left', 'children'),
-    Input('on-time', 'children'))
-def update_total_timer(on_time):
-    ot = on_time
+    Input('current-interval-component', 'n_intervals'))
+def update_total_timer(n):
+
     t = datetime.datetime.now()
 
     hours = 24 - t.hour - 1
@@ -397,10 +423,22 @@ def outside_temp(n):
 def avg_outside_temp(n):
     df = pd.read_csv('../../tempjan19.csv', names=['Time', 'Temp'], index_col=['Time'], parse_dates=['Time'])
 
+
     daily_avg = df['Temp'].resample('D').mean()
-    daily_avg = df.loc[start:today]
-    print(daily_avg)
+    # print(start)
+    daily_avg = daily_avg.loc[start:]
     today_avg = daily_avg.iloc[-1]
+    daily_avg = daily_avg.to_frame()
+    daily_avg = daily_avg.reset_index()
+
+    # daily_avg['Time'] = daily_avg['Time'].dt.strftime('%m-%d')
+    # daily_avg['Time'] = daily_avg['Time']
+    # daily_avg.set_index('Time')
+    # daily_avg = daily_avg.set_index(pd.to_datetime(daily_avg.index))
+    # print(type(daily_avg))
+    # print(daily_avg)
+
+
 
     return daq.LEDDisplay(
         label='Outside  Avg T',
