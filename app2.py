@@ -245,7 +245,8 @@ def display_annual_table(temp_data, daily_avg):
     df['Run Time'] = df['Run Time'].astype(str).str[6:15]
     df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
-    df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
+    # df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
+    df['Off Time'] = df['Off Time'].astype(str).str[6:15]
 
     df['Date'] = df['Month'] +'-'+df['Day']
     df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
