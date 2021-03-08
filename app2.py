@@ -151,7 +151,7 @@ app.layout = html.Div([
         ),
         dcc.Interval(
             id='current-interval-component',
-            interval=3000,
+            interval=2000,
             n_intervals=0
         ),
     ]),
@@ -212,6 +212,7 @@ def display_daily_table(n):
 def display_annual_table(temp_data, daily_avg):
     df = pd.read_json(temp_data)
 
+
     d_avg = pd.read_json(daily_avg)
 
     d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
@@ -229,7 +230,9 @@ def display_annual_table(temp_data, daily_avg):
     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
     df = df.drop('index', 1)
     df['seconds'] = df['time_delta'] / 1000
+    # print(df.tail())
     today_run_seconds = df['time_delta'].iloc[-1] / 1000
+    # today_off_seconds =
     df = df.drop('time_delta', 1)
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
@@ -238,7 +241,8 @@ def display_annual_table(temp_data, daily_avg):
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
     df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
-    df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
+    # df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
+    df['Run Time'] = df['Run Time'].astype(str).str[6:15]
     df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
     df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
@@ -246,7 +250,8 @@ def display_annual_table(temp_data, daily_avg):
     df['Date'] = df['Month'] +'-'+df['Day']
     df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
     df = pd.merge(df, d_avg, on='Date', how = 'outer')
-
+    print(type(df['Run Time'].iloc[-1]))
+    # df['Run Time'] = df['Run Time'].map('{%H:%M:%s}'.format)
 
     columns=[
         {"name": i, "id": i, "selectable": True} for i in df.columns
@@ -317,7 +322,7 @@ def pct_off_timer(run_count, off_count):
     Input('off-time', 'children'))
 def update_run_timer(off_time):
     ot = int(off_time)
-    print(ot)
+    # print(ot)
 
 
     minutes = ot // 60
@@ -337,6 +342,7 @@ def update_run_timer(off_time):
     Input('on-time', 'children'))
 def update_run_timer(on_time):
     rt = on_time
+    print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -408,7 +414,7 @@ def avg_outside_temp(n):
     Input('current-interval-component', 'n_intervals')])
 def update_ct_led(current_temp, n):
     ct = current_temp
-
+    print(ct)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
@@ -435,12 +441,20 @@ def update_total_timer(n):
     Input('daily-run-totals', 'children')])
 def on_off(n, data):
     t = datetime.datetime.now()
+    print(t.day)
     df = pd.read_json(data)
+    print(len(df.index))
 
     time_val = df.unstack()
+    # print(time_val)
+    # print(time_val)
+    # print(time_val.xs(()))
 
-    current_run_time = time_val['time_delta'].iloc[-1]
-    current_run_time = int(current_run_time / 1000)
+    if t.day == len(df.index):
+        current_run_time = time_val['time_delta'].iloc[-1]
+        current_run_time = int(current_run_time / 1000)
+    else:
+        current_run_time = 0
 
     on_time = current_run_time
 
@@ -457,6 +471,7 @@ def on_off(n, data):
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
     # df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'])
+    t = datetime.datetime.now()
 
     df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'], dtype={'Temp':'Float32'})
     # print(df.info())
@@ -464,6 +479,7 @@ def current_temp(n):
     df['Date'] = pd.to_datetime(df['Time'].dt.date)
 
     f = df['Temp'][-1]
+    # print(f)
 
     df['change'] = df['Temp'] - df['Temp'].shift(1)
     change = df['change'].iloc[-1]
@@ -471,15 +487,54 @@ def current_temp(n):
     df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
     df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 118, 'true', 'false' )))
 
+    # df['off'] = np.where(df)
+
     dfrt = df[['Time','time_delta','run']]
     dfrt.columns = ['Date', 'time_delta', 'run']
+
 
     df_new = dfrt.loc[dfrt['run'] == 'true']
 
     df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
-    df_hell['Off'] = pd.Timedelta(24, unit='h') - df_hell['time_delta']
-    print(df_hell.tail())
-    print(type(df_hell['time_delta'][-1]))
+    df_hell = df_hell.rename_axis(['Month', 'Day'])
+    # print(df_hell.tail())
+    # print(df_hell[df_hell.index.get_level_values('Day').isin([datetime.datetime.now().day])])
+    # print(type(str(datetime.datetime.now().day)))
+    # print((datetime.datetime.now().second))
+    # print(df_hell['time_delta'][-1])
+    # print('hey')
+    today_tot_seconds = int((t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
+    today_tot_seconds = datetime.timedelta(seconds=today_tot_seconds)
+    # print(today_tot_seconds)
+    # print(today_tot_seconds - df_hell['time_delta'][-1])
+    full_day_seconds = datetime.timedelta(seconds=86400)
+    # print(full_day_seconds)
+    #
+    # print(df_hell[df_hell.index.get_level_values('Day').isin([datetime.datetime.now().day])])
+    # # df_hell.index = df_hell.index.get_level_values('Day')
+
+    # def off_time(df_hell):
+    #     if df_hell[df_hell.index.get_level_values('Day').isin([datetime.datetime.now().day])]:
+    #         return today_tot_seconds - df_hell['time_delta']
+    #     else:
+    #         return full_day_seconds - df_hell['time_delta']
+
+    # def off_time(df_hell):
+    #     return today_tot_seconds - df_hell.iloc['time_delta']
+    #
+    # # df_hell['Off'] = [today_tot_seconds - df_hell['time_delta'] if df_hell[df_hell.index.get_level_values('Day').isin([datetime.datetime.now().day])]
+    #
+    # df_hell['Off'] = df_hell.apply(off_time)
+    # print(df_hell)
+    # df_hell['Off'] = np.where(df_hell['Day'] != datetime.datetime.now().day, 86000 - dftime_delta, )
+    # df['Off Time'] = df['Off Time'].apply(lambda x: str(x)) )
+
+    pd.Timedelta(24, unit='h') - df_hell['time_delta']
+
+    # df_hell['Off'] = np.where
+
+    # print(df_hell.tail())
+    # print(type(df_hell['time_delta'][-1]))
     current_temp = f
 
     return change, current_temp, df.to_json(), df_hell.to_json()
