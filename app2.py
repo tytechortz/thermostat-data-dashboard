@@ -265,6 +265,7 @@ def display_annual_table(temp_data, daily_avg):
     df['Date'] = df['Month'] +'-'+df['Day']
     df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
     df = pd.merge(df, d_avg, on='Date', how = 'outer')
+    df = df.sort_values(by=['Off Time'], ascending = False)
     # print(type(df['Run Time'].iloc[-1]))
     # df['Run Time'] = df['Run Time'].map('{%H:%M:%s}'.format)
 
