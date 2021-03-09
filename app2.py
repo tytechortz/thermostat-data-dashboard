@@ -224,18 +224,22 @@ def display_annual_table(temp_data, daily_avg):
 
 
     t = datetime.datetime.now()
+    print(t.day)
 
     df.reset_index(inplace=True)
 
     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
     df = df.drop('index', 1)
     df['seconds'] = df['time_delta'] / 1000
-    # print(df.tail())
+    print(df['seconds'].index[-1])
+
+    print(df.tail())
     today_run_seconds = df['time_delta'].iloc[-1] / 1000
     # today_off_seconds =
     df = df.drop('time_delta', 1)
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    print(today_tot_seconds)
     pct_on = today_tot_seconds / today_run_seconds
 
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
@@ -243,15 +247,25 @@ def display_annual_table(temp_data, daily_avg):
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
     # df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
     df['Run Time'] = df['Run Time'].astype(str).str[6:15]
-    df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
+    print(df.tail())
+    # df.iloc[]
+
+    df.loc[df['Day'] == str(t.day), 'Off Time'] = (today_tot_seconds - df['seconds'])
+    df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
+    #     df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
+    # else:
+    #     df['Off Time'] = df['seconds'].apply(lambda x: (86400 - x))
+    #     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
+
     # df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
     df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+
 
     df['Date'] = df['Month'] +'-'+df['Day']
     df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
     df = pd.merge(df, d_avg, on='Date', how = 'outer')
-    print(type(df['Run Time'].iloc[-1]))
+    # print(type(df['Run Time'].iloc[-1]))
     # df['Run Time'] = df['Run Time'].map('{%H:%M:%s}'.format)
 
     columns=[
@@ -343,7 +357,7 @@ def update_run_timer(off_time):
     Input('on-time', 'children'))
 def update_run_timer(on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -415,7 +429,7 @@ def avg_outside_temp(n):
     Input('current-interval-component', 'n_intervals')])
 def update_ct_led(current_temp, n):
     ct = current_temp
-    print(ct)
+    # print(ct)
     return daq.LEDDisplay(
         label='Current Temp',
         value='{:,.2f}'.format(ct),
@@ -442,9 +456,9 @@ def update_total_timer(n):
     Input('daily-run-totals', 'children')])
 def on_off(n, data):
     t = datetime.datetime.now()
-    print(t.day)
+    # print(t.day)
     df = pd.read_json(data)
-    print(len(df.index))
+    # print(len(df.index))
 
     time_val = df.unstack()
     # print(time_val)
@@ -534,7 +548,7 @@ def current_temp(n):
 
     # df_hell['Off'] = np.where
 
-    # print(df_hell.tail())
+    # print(df_hell))
     # print(type(df_hell['time_delta'][-1]))
     current_temp = f
 
