@@ -29,6 +29,8 @@ urlin = "http://10.0.1.6:5000"
 
 start = '2021-03-01 00:00:00.00000'
 today = datetime.datetime.now().strftime("%Y-%m-%d")
+today_day = datetime.datetime.now().strftime("%-m-%-d")
+# print(today_day)
 
 pd.options.display.float_format = '{:,.2f}'.format
 
@@ -126,7 +128,14 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    dt.DataTable(id='temp-datatable-interactivity'),
+                    dt.DataTable(id='temp-datatable-interactivity',
+                    style_data_conditional=[
+                        # {
+                        # 'if': {'column_id': 'Date',
+                        # 'filter_query': '{{Date}} = {}'.format(df['Date']) },
+                        # 'backgroundColor': 'dodgerblue'
+                        # }
+                    ]),
                 ],
                     className='five columns'
                 ),
@@ -166,43 +175,47 @@ app.layout = html.Div([
     html.Div(id='ont', style={'display':'none'}),
 ])
 
-@app.callback(
-    Output('temp-datatable-interactivity', 'table'),
-    Input('interval-component', 'n_intervals'))
-def display_daily_table(n):
-
-
-    return dt.DataTable(id='temp-datatable-interactivity',
-    data=[{}],
-    columns=[{}],
-    fixed_rows={'headers': True, 'data': 0},
-    style_cell={'textAlign': 'left22', 'backgroundColor': 'rgb(30, 30, 30)'},
-    style_cell_conditional=[
-        {'if': {'column_id': 'Date'},
-        'width':'100px'},
-        {'if': {'column_id': 'Value'},
-        'width':'100px'},
-    ],
-    style_data_conditional=[
-        {
-        'if': {'row_index': 'odd'},
-        'backgroundColor': 'rgb(30, 30, 30)'
-        },
-    ],
-    style_header={
-    'backgroundColor': 'rgb(230, 230, 230)',
-    'fontWeight': 'bold'
-    },
-
-    sort_action="native",
-    sort_mode="multi",
-    column_selectable="single",
-    selected_columns=[],
-    selected_rows=[],
-
-    page_current= 0,
-    page_size= 10,
-    )
+# @app.callback(
+#     Output('temp-datatable-interactivity', 'table'),
+#     Input('interval-component', 'n_intervals'))
+# def display_daily_table(n):
+#
+#
+#     return dt.DataTable(id='temp-datatable-interactivity',
+#     data=[{}],
+#     columns=[{}],
+#     fixed_rows={'headers': True, 'data': 0},
+#     style_cell={'textAlign': 'left22', 'backgroundColor': 'rgb(30, 30, 30)'},
+#     style_cell_conditional=[
+#         {'if': {'column_id': 'Date'},
+#         'width':'100px'},
+#         {'if': {'column_id': 'Temp'},
+#         'width':'500px'},
+#     ],
+    # style_data_conditional=[
+    #     {
+    #     'if': {'row_index': 'odd'},
+    #     'backgroundColor': 'rgb(30, 30, 30)'
+    #     },
+    #     {
+    #     'if': {'row_index': 7},
+    #     'backgroundColor': 'dodgerblue'
+    #     }
+    # ],
+#     style_header={
+#     'backgroundColor': 'rgb(230, 230, 230)',
+#     'fontWeight': 'bold'
+#     },
+#
+#     sort_action="native",
+#     sort_mode="multi",
+#     column_selectable="single",
+#     selected_columns=[],
+#     selected_rows=[],
+#
+#     page_current= 0,
+#     page_size= 10,
+#     )
 
 @app.callback([
     Output('temp-datatable-interactivity', 'data'),
@@ -215,31 +228,42 @@ def display_annual_table(temp_data, daily_avg):
 
     d_avg = pd.read_json(daily_avg)
 
+
     d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
+
     d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
 
-    d_avg['Time'] = d_avg['Time'].dt.strftime('%-m-%-d')
-    d_avg = d_avg.rename(columns = {'Time': 'Date'})
+    # d_avg['Time'] = d_avg['Time'].dt.strftime('%-m-%-d')
+    # d_avg = d_avg.rename(columns = {'Time': 'Date'})
+    d_avg = d_avg.set_index('Time')
     d_avg['Temp'] = d_avg['Temp'].round(1)
+    # print(d_avg)
 
+    # t = datetime.datetime.now().day
+    t = datetime.datetime.today()
+    # print(t)
+    td = t.day
+    # print(td)
 
-    t = datetime.datetime.now()
-    print(t.day)
+    # df.reset_index(inplace=True)
+    # print(df.tail(10))
+    # print(type(df.index[0]))
 
-    df.reset_index(inplace=True)
-
-    df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
-    df = df.drop('index', 1)
+    # if t.day < 10:
+    #     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
+    # else:
+    #     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:5]
+    # df = df.drop('index', 1)
     df['seconds'] = df['time_delta'] / 1000
-    print(df['seconds'].index[-1])
+    # print(df['seconds'].index[-1])
 
-    print(df.tail())
+    # print(df.tail())
     today_run_seconds = df['time_delta'].iloc[-1] / 1000
     # today_off_seconds =
     df = df.drop('time_delta', 1)
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    print(today_tot_seconds)
+    # print(today_tot_seconds)
     pct_on = today_tot_seconds / today_run_seconds
 
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
@@ -247,11 +271,15 @@ def display_annual_table(temp_data, daily_avg):
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
     # df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
     df['Run Time'] = df['Run Time'].astype(str).str[6:15]
-    print(df.tail())
+
     # df.iloc[]
 
-    df.loc[df['Day'] == str(t.day), 'Off Time'] = (today_tot_seconds - df['seconds'])
-    df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
+    df['Off Time'] = np.where(df.index.day == td, (today_tot_seconds - df['seconds']), (86400 - df['seconds']))
+    # df['Off Time'] = np.where(df.index.day != td, (86400 - df['seconds']))
+    # df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
+
+    # df.loc[df['Day'] == str(t.day), 'Off Time'] = (today_tot_seconds - df['seconds'])
+    # df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
     #     df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
     # else:
@@ -260,12 +288,18 @@ def display_annual_table(temp_data, daily_avg):
 
     # df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
     df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+    # print(df.tail())
+    # print(d_avg)
 
 
-    df['Date'] = df['Month'] +'-'+df['Day']
-    df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
-    df = pd.merge(df, d_avg, on='Date', how = 'outer')
+    # df['Date'] = df['Month'] +'-'+df['Day']
+
+    df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
     df = df.sort_values(by=['Off Time'], ascending = False)
+    df['Date'] = df.index.date
+    df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
+    print(type(df['Date']))
+    df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
     # print(type(df['Run Time'].iloc[-1]))
     # df['Run Time'] = df['Run Time'].map('{%H:%M:%s}'.format)
 
@@ -459,6 +493,7 @@ def on_off(n, data):
     t = datetime.datetime.now()
     # print(t.day)
     df = pd.read_json(data)
+    # print(df.tail())
     # print(len(df.index))
 
     time_val = df.unstack()
@@ -510,10 +545,19 @@ def current_temp(n):
 
 
     df_new = dfrt.loc[dfrt['run'] == 'true']
+    # print(df_new.tail())
+    # df_hell = df_new.groupby(pd.to_datetime(df_new['Date']).dt.strftime('%m-%d'))['time_delta'].sum()
+    df_new = df_new.groupby(pd.to_datetime(df_new['Date']).dt.strftime('%m-%d'))['time_delta'].sum().reset_index()
+    # df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
+    # df_hell = df_hell.rename_axis(['Month', 'Day'])
 
-    df_hell = df_new.groupby([df_new['Date'].dt.month, df_new['Date'].dt.day]).agg({'time_delta':sum})
-    df_hell = df_hell.rename_axis(['Month', 'Day'])
-    # print(df_hell.tail())
+    df_new['Date'] = df_new['Date'].apply(lambda x: '2021-' + x)
+    # print(df_new.tail())
+    df_new['Date'] = pd.to_datetime(df_new['Date'])
+    df_new = df_new.set_index('Date')
+    # print(df_new.tail())
+    # df_hell = df_hell.set_index('Date')
+    # print(df_hell)
     # print(df_hell[df_hell.index.get_level_values('Day').isin([datetime.datetime.now().day])])
     # print(type(str(datetime.datetime.now().day)))
     # print((datetime.datetime.now().second))
@@ -545,15 +589,15 @@ def current_temp(n):
     # df_hell['Off'] = np.where(df_hell['Day'] != datetime.datetime.now().day, 86000 - dftime_delta, )
     # df['Off Time'] = df['Off Time'].apply(lambda x: str(x)) )
 
-    pd.Timedelta(24, unit='h') - df_hell['time_delta']
+    # pd.Timedelta(24, unit='h') - df_hell['time_delta']
 
     # df_hell['Off'] = np.where
-
-    # print(df_hell))
+    # df_hell = df_hell.unstack()
+    # print(df_hell)
     # print(type(df_hell['time_delta'][-1]))
     current_temp = f
 
-    return change, current_temp, df.to_json(), df_hell.to_json()
+    return change, current_temp, df.to_json(), df_new.to_json()
 
 
 
