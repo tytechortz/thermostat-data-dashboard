@@ -225,83 +225,48 @@ app.layout = html.Div([
 def display_annual_table(temp_data, daily_avg):
     df = pd.read_json(temp_data)
 
-
     d_avg = pd.read_json(daily_avg)
-
 
     d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
 
     d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
 
-    # d_avg['Time'] = d_avg['Time'].dt.strftime('%-m-%-d')
-    # d_avg = d_avg.rename(columns = {'Time': 'Date'})
     d_avg = d_avg.set_index('Time')
     d_avg['Temp'] = d_avg['Temp'].round(1)
-    # print(d_avg)
 
-    # t = datetime.datetime.now().day
     t = datetime.datetime.today()
-    # print(t)
+
     td = t.day
-    # print(td)
 
-    # df.reset_index(inplace=True)
-    # print(df.tail(10))
-    # print(type(df.index[0]))
-
-    # if t.day < 10:
-    #     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:4]
-    # else:
-    #     df['Month'], df['Day'] = df['index'].str[1:2], df['index'].str[3:5]
-    # df = df.drop('index', 1)
     df['seconds'] = df['time_delta'] / 1000
-    # print(df['seconds'].index[-1])
 
-    # print(df.tail())
     today_run_seconds = df['time_delta'].iloc[-1] / 1000
-    # today_off_seconds =
+
     df = df.drop('time_delta', 1)
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    # print(today_tot_seconds)
+
     pct_on = today_tot_seconds / today_run_seconds
 
     df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
     df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
     df['Run Time'] = df['seconds'].apply(lambda x: datetime.timedelta(seconds=x))
-    # df['Run Time'] = df['Run Time'].apply(lambda x: str(x))
     df['Run Time'] = df['Run Time'].astype(str).str[6:15]
 
-    # df.iloc[]
 
     df['Off Time'] = np.where(df.index.day == td, (today_tot_seconds - df['seconds']), (86400 - df['seconds']))
-    # df['Off Time'] = np.where(df.index.day != td, (86400 - df['seconds']))
-    # df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
 
-    # df.loc[df['Day'] == str(t.day), 'Off Time'] = (today_tot_seconds - df['seconds'])
-    # df.loc[df['Day'] != str(t.day), 'Off Time'] = (86400 - df['seconds'])
-    #     df['Off Time'] = df['seconds'].apply(lambda x: (today_tot_seconds - x))
     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
-    # else:
-    #     df['Off Time'] = df['seconds'].apply(lambda x: (86400 - x))
-    #     df['Off Time'] = df['Off Time'].apply(lambda x: datetime.timedelta(seconds=x))
 
-    # df['Off Time'] = df['Off Time'].apply(lambda x: str(x))
     df['Off Time'] = df['Off Time'].astype(str).str[6:15]
-    # print(df.tail())
-    # print(d_avg)
-
-
-    # df['Date'] = df['Month'] +'-'+df['Day']
 
     df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
     df = df.sort_values(by=['Off Time'], ascending = False)
     df['Date'] = df.index.date
     df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
-    print(type(df['Date']))
+    
     df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
-    # print(type(df['Run Time'].iloc[-1]))
-    # df['Run Time'] = df['Run Time'].map('{%H:%M:%s}'.format)
+
 
     columns=[
         {"name": i, "id": i, "selectable": True} for i in df.columns
