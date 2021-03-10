@@ -263,8 +263,9 @@ def display_annual_table(temp_data, daily_avg):
     df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
     df = df.sort_values(by=['Off Time'], ascending = False)
     df['Date'] = df.index.date
-    df = df[['Date', 'Pct Off', 'Run Time', 'Off Time']]
-    
+    print(df)
+    df = df[['Date', 'Pct Off', 'Run Time', 'Off Time', 'Temp']]
+
     df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
 
 
