@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from dash.dependencies import Input, Output
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import datetime as dt
 import math
 import time
@@ -155,7 +155,7 @@ app.layout = html.Div([
         ),
         dcc.Interval(
             id='outside-interval-component',
-            interval=10000,
+            interval=60000,
             n_intervals=0
         ),
         dcc.Interval(
@@ -359,17 +359,19 @@ def on_off(n, data):
     t = datetime.now()
     # print(t.day)
     df = pd.read_json(data)
-    # print(df)
+    print(df)
 
     time_val = df.unstack()
+    print(time_val)
 
-    # if t.day-10 == len(df.index):
-    #     current_run_time = time_val['time_delta'].iloc[-1]
-    #     current_run_time = int(current_run_time / 1000)
-    # else:
-    #     current_run_time = 0
+    if df.empty == False:
+        current_run_time = time_val['time_delta'].iloc[-1]
+        current_run_time = int(current_run_time / 1000)
+    else:
+        current_run_time = 0
 
-    on_time = int(time_val['time_delta'].iloc[-1] / 1000)
+    # on_time = int(time_val['time_delta'].iloc[-1] / 1000)
+    on_time = current_run_time
     # print(on_time)
 
     today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
@@ -427,7 +429,7 @@ def current_temp(n):
     return change, current_temp, df_run.to_json()
 
 @app.callback(
-    # Output('temp-datatable-interactivity', 'data'),
+    Output('temp-datatable-interactivity', 'data'),
     Output('temp-datatable-interactivity', 'columns'),
     [Input('outside-interval-component', 'children'),
     Input('daily-avg', 'children')])
@@ -436,9 +438,16 @@ def display_annual_table(n, daily_avg):
     df = pd.read_csv('./export_df.csv')
 
     df['time_delta'] = df['time_delta'].str[7:15]
-    # df['time_delta'] = pd.to_datetime(df['time_delta'])
+    df.set_index('Date', inplace=True)
+    df['Date'] = df.index
+
+    # df['Date'] = pd.to_datetime(df['Date'])
+
+    df['time_delta'] = pd.to_timedelta(df['time_delta'])
+
+
     # df['time_delta'] = df['time_delta'].apply(lambda x:strftime('%Y:%m:%d')
-    print(df)
+    # print(df)
     # df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'], dtype={'Temp':'Float32'})
     # df.set_index(df['Time'], inplace = True)
     # df['Date'] = pd.to_datetime(df['Time'].dt.date)
@@ -462,7 +471,7 @@ def display_annual_table(n, daily_avg):
     # df_run = df_run.set_index('Date')
     #
     #
-    print(type(df['time_delta'].loc[20]))
+    # print(type(df['time_delta'].loc[20]))
     #
     d_avg = pd.read_json(daily_avg)
     #
@@ -491,19 +500,29 @@ def display_annual_table(n, daily_avg):
     # df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
     # df['Run Time'] = df['seconds'].apply(lambda x: dt.timedelta(seconds=x))
     # df['Run Time'] = df['Run Time'].astype(str).str[6:15]
+    now = pd.Timestamp.now()
+    td = pd.to_timedelta('24:00:00')
+    print(type(td))
+
     #
-    #
-    # df['Off Time'] = np.where(df.index.day == td, (today_tot_seconds - df['seconds']), (86400 - df['seconds']))
+    df['Off Time'] = df['time_delta'].apply(lambda x: td - x)
+    df['Off_s'] = df['Off Time'] / np.timedelta64(1, 's')
+    print(df)
+    print(df.columns)
+    # df['Off Time'] = np.where(df.index.day == td, (now - df['seconds']), (86400 - df['seconds']))
     #
     # df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
     #
-    # df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+    df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+    df.rename(columns = {'time_delta':'On Time'}, inplace=True)
+    df['On Time'] = df['On Time'].astype(str).str[6:15]
+
     #
     # df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
-    # df = df.sort_values(by=['Run Time'], ascending = True)
+    df = df.sort_values(by=['On Time'], ascending = True)
     # df['Date'] = df.index.date
     # # print(df)
-    # df = df[['Date', 'Pct Off', 'Run Time', 'Off Time', 'Temp']]
+    df = df[['Date', 'On Time', 'Off Time']]
     #
     # df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
 
