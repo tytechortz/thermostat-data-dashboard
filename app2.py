@@ -155,7 +155,7 @@ app.layout = html.Div([
         ),
         dcc.Interval(
             id='outside-interval-component',
-            interval=60000,
+            interval=10000,
             n_intervals=0
         ),
         dcc.Interval(
@@ -171,70 +171,9 @@ app.layout = html.Div([
     html.Div(id='off-time', style={'display':'none'}),
     html.Div(id='daily-avg', style={'display':'none'}),
     html.Div(id='current-temp', style={'display':'none'}),
-    html.Div(id='daily-run-totals', style={'display':'none'}),
+    html.Div(id='today-temp-data', style={'display':'none'}),
     html.Div(id='ont', style={'display':'none'}),
 ])
-
-
-
-@app.callback([
-    Output('temp-datatable-interactivity', 'data'),
-    Output('temp-datatable-interactivity', 'columns')],
-    [Input('all-temp-data', 'children'),
-    Input('daily-avg', 'children')])
-def display_annual_table(temp_data, daily_avg):
-    df = pd.read_json(temp_data)
-    # print(df.tail())
-
-    d_avg = pd.read_json(daily_avg)
-
-    d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
-
-    d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
-
-    d_avg = d_avg.set_index('Time')
-    d_avg['Temp'] = d_avg['Temp'].round(1)
-
-    t = datetime.today()
-
-    td = t.day
-
-    df['seconds'] = df['time_delta'] / 1000
-
-    today_run_seconds = df['time_delta'].iloc[-1] / 1000
-
-    df = df.drop('time_delta', 1)
-
-    today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-
-    pct_on = today_tot_seconds / today_run_seconds
-
-    df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
-    df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
-    df['Run Time'] = df['seconds'].apply(lambda x: dt.timedelta(seconds=x))
-    df['Run Time'] = df['Run Time'].astype(str).str[6:15]
-
-
-    df['Off Time'] = np.where(df.index.day == td, (today_tot_seconds - df['seconds']), (86400 - df['seconds']))
-
-    df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
-
-    df['Off Time'] = df['Off Time'].astype(str).str[6:15]
-
-    df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
-    df = df.sort_values(by=['Run Time'], ascending = True)
-    df['Date'] = df.index.date
-    # print(df)
-    df = df[['Date', 'Pct Off', 'Run Time', 'Off Time', 'Temp']]
-
-    df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
-
-
-    columns=[
-        {"name": i, "id": i, "selectable": True} for i in df.columns
-    ]
-
-    return df.to_dict('records'), columns
 
 @app.callback(
     Output('max-run-time', 'children'),
@@ -415,7 +354,7 @@ def update_total_timer(n):
     [Output('on-time', 'children'),
     Output('off-time', 'children')],
     [Input('current-interval-component', 'n_intervals'),
-    Input('all-temp-data', 'children')])
+    Input('today-temp-data', 'children')])
 def on_off(n, data):
     t = datetime.now()
     # print(t.day)
@@ -441,7 +380,7 @@ def on_off(n, data):
 @app.callback([
     Output('change', 'children'),
     Output('current-temp', 'children'),
-    Output('all-temp-data', 'children')],
+    Output('today-temp-data', 'children')],
     Input('current-interval-component', 'n_intervals'))
 def current_temp(n):
 
@@ -486,6 +425,94 @@ def current_temp(n):
     current_temp = f
 
     return change, current_temp, df_run.to_json()
+
+@app.callback(
+    # Output('temp-datatable-interactivity', 'data'),
+    Output('temp-datatable-interactivity', 'columns'),
+    [Input('outside-interval-component', 'children'),
+    Input('daily-avg', 'children')])
+def display_annual_table(n, daily_avg):
+    print(n)
+    df = pd.read_csv('./export_df.csv')
+
+    df['time_delta'] = df['time_delta'].str[7:15]
+    # df['time_delta'] = pd.to_datetime(df['time_delta'])
+    # df['time_delta'] = df['time_delta'].apply(lambda x:strftime('%Y:%m:%d')
+    print(df)
+    # df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'], dtype={'Temp':'Float32'})
+    # df.set_index(df['Time'], inplace = True)
+    # df['Date'] = pd.to_datetime(df['Time'].dt.date)
+    #
+    # df['change'] = df['Temp'] - df['Temp'].shift(1)
+    # change = df['change'].iloc[-1]
+    # df['tvalue'] = df.index
+    # df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
+    # df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 118, 'true', 'false' )))
+    # dfrt = df[['Time','time_delta','run', 'tvalue']]
+    #
+    # dfrt.columns = ['Date', 'time_delta', 'run', 'tvalue']
+    # # print(dfrt)
+    # df_run = dfrt.loc[dfrt['run'] == 'true']
+    #
+    # df_run = df_run.groupby(pd.to_datetime(df_run['Date']).dt.strftime('%m-%d'))['time_delta'].sum().reset_index()
+    #
+    # df_run['Date'] = df_run['Date'].apply(lambda x: '2021-' + x)
+    #
+    # df_run['Date'] = pd.to_datetime(df_run['Date'])
+    # df_run = df_run.set_index('Date')
+    #
+    #
+    print(type(df['time_delta'].loc[20]))
+    #
+    d_avg = pd.read_json(daily_avg)
+    #
+    d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
+
+    d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
+
+    d_avg = d_avg.set_index('Time')
+    d_avg['Temp'] = d_avg['Temp'].round(1)
+    #
+    # t = datetime.today()
+    #
+    # td = t.day
+    #
+    # df['seconds'] = df['time_delta'] / 1000
+    #
+    # today_run_seconds = df['time_delta'].iloc[-1] / 1000
+    #
+    # df = df.drop('time_delta', 1)
+    #
+    # today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    #
+    # pct_on = today_tot_seconds / today_run_seconds
+    #
+    # df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
+    # df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
+    # df['Run Time'] = df['seconds'].apply(lambda x: dt.timedelta(seconds=x))
+    # df['Run Time'] = df['Run Time'].astype(str).str[6:15]
+    #
+    #
+    # df['Off Time'] = np.where(df.index.day == td, (today_tot_seconds - df['seconds']), (86400 - df['seconds']))
+    #
+    # df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
+    #
+    # df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+    #
+    # df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
+    # df = df.sort_values(by=['Run Time'], ascending = True)
+    # df['Date'] = df.index.date
+    # # print(df)
+    # df = df[['Date', 'Pct Off', 'Run Time', 'Off Time', 'Temp']]
+    #
+    # df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
+
+
+    columns=[
+        {"name": i, "id": i, "selectable": True} for i in df.columns
+    ]
+
+    return df.to_dict('records'), columns
 
     # @app.callback(
     #     Output('daily-run-totals', 'children'),
