@@ -425,6 +425,7 @@ def current_temp(n):
     full_day_seconds = dt.timedelta(seconds=86400)
     #
     current_temp = f
+    # print(df_run)
 
     return change, current_temp, df_run.to_json()
 
@@ -437,14 +438,19 @@ def display_annual_table(n, daily_avg):
     print(n)
     df = pd.read_csv('./export_df.csv')
 
+    data_types = df.dtypes
+    print(data_types)
     df['time_delta'] = df['time_delta'].str[7:15]
-    df.set_index('Date', inplace=True)
+    print(df)
+    df = df.set_index(pd.DatetimeIndex(df['Date']))
     df['Date'] = df.index
 
     # df['Date'] = pd.to_datetime(df['Date'])
 
     df['time_delta'] = pd.to_timedelta(df['time_delta'])
-
+    df['Run'] = df['time_delta'].apply(lambda x: x.total_seconds())
+    df['Run'] = df['Run'].astype(int)
+    print(df)
 
     # df['time_delta'] = df['time_delta'].apply(lambda x:strftime('%Y:%m:%d')
     # print(df)
@@ -482,7 +488,7 @@ def display_annual_table(n, daily_avg):
     d_avg = d_avg.set_index('Time')
     d_avg['Temp'] = d_avg['Temp'].round(1)
     #
-    # t = datetime.today()
+    t = datetime.today()
     #
     # td = t.day
     #
@@ -492,7 +498,9 @@ def display_annual_table(n, daily_avg):
     #
     # df = df.drop('time_delta', 1)
     #
-    # today_tot_seconds = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    tts = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    tts = pd.to_timedelta(tts)
+    # print(tts)
     #
     # pct_on = today_tot_seconds / today_run_seconds
     #
@@ -502,20 +510,23 @@ def display_annual_table(n, daily_avg):
     # df['Run Time'] = df['Run Time'].astype(str).str[6:15]
     now = pd.Timestamp.now()
     td = pd.to_timedelta('24:00:00')
-    print(type(td))
+    # print(type(td))
 
     #
     df['Off Time'] = df['time_delta'].apply(lambda x: td - x)
     df['Off_s'] = df['Off Time'] / np.timedelta64(1, 's')
-    print(df)
-    print(df.columns)
-    # df['Off Time'] = np.where(df.index.day == td, (now - df['seconds']), (86400 - df['seconds']))
-    #
-    # df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
-    #
+
+    # print(df.columns)
+    df['Off_s'] = df['Off_s'].astype(int)
+
+    df['Off Time'] = np.where(df.index.day == td, (tts - df['time_delta']), (td - df['time_delta']))
+    # print(df)
+    df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
+
     df['Off Time'] = df['Off Time'].astype(str).str[6:15]
     df.rename(columns = {'time_delta':'On Time'}, inplace=True)
     df['On Time'] = df['On Time'].astype(str).str[6:15]
+    df['Date'] = df['Date'].astype(str).str[6:15]
 
     #
     # df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
