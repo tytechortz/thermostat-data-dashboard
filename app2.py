@@ -540,19 +540,19 @@ def display_annual_table(n, daily_avg):
     #
     # df['Off Time'] = np.where(df.index.day == td, (tts - df['time_delta']), (td - df['time_delta']))
     # # print(df)
-    # df['Off Time'] = df['Off Time'].apply(lambda x: dt.timedelta(seconds=x))
-    #
-    # df['Off Time'] = df['Off Time'].astype(str).str[6:15]
+    df['Off'] = df['Off'].apply(lambda x: dt.timedelta(seconds=x))
+
+    df['Off'] = df['Off'].astype(str).str[6:15]
     df.rename(columns = {'time_delta':'On Time'}, inplace=True)
     df['On Time'] = df['On Time'].astype(str).str[6:15]
     df['Date'] = df['Date'].astype(str).str[6:15]
 
     #
-    # df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
+    df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
     df = df.sort_values(by=['On Time'], ascending = True)
     # df['Date'] = df.index.date
     # # print(df)
-    df = df[['Date', 'On Time', 'Off', 'Pct Off']]
+    df = df[['Date', 'On Time', 'Off', 'Pct Off', 'Temp']]
     #
     # df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
 
