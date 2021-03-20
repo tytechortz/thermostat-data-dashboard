@@ -465,7 +465,7 @@ def display_annual_table(n, daily_avg):
     df['Run'] = df['Run'].astype(int)
     # print(df)
     df['Off'] = np.where(df.index >= today, (tts - df['Run']), (86400 - df['Run']))
-    print(df)
+
 
     # df['time_delta'] = df['time_delta'].apply(lambda x:strftime('%Y:%m:%d')
     # print(df)
@@ -521,8 +521,10 @@ def display_annual_table(n, daily_avg):
     #
     # pct_on = today_tot_seconds / today_run_seconds
     #
-    # df['Pct Off'] = df['seconds'].apply(lambda x: (86400 - x) / 86400)
-    # df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
+    df['Pct Off'] = df['Run'].apply(lambda x: (86400 - x) / 86400)
+
+    df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
+    print(df)
     # df['Run Time'] = df['seconds'].apply(lambda x: dt.timedelta(seconds=x))
     # df['Run Time'] = df['Run Time'].astype(str).str[6:15]
     # now = pd.Timestamp.now()
@@ -550,7 +552,7 @@ def display_annual_table(n, daily_avg):
     df = df.sort_values(by=['On Time'], ascending = True)
     # df['Date'] = df.index.date
     # # print(df)
-    df = df[['Date', 'On Time', 'Off']]
+    df = df[['Date', 'On Time', 'Off', 'Pct Off']]
     #
     # df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
 
