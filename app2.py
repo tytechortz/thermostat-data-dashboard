@@ -155,12 +155,12 @@ app.layout = html.Div([
         ),
         dcc.Interval(
             id='outside-interval-component',
-            interval=60000,
+            interval=5500,
             n_intervals=0
         ),
         dcc.Interval(
             id='current-interval-component',
-            interval=1000,
+            interval=1500,
             n_intervals=0
         ),
     ]),
@@ -258,7 +258,7 @@ def update_run_timer(off_time):
     Input('on-time', 'children'))
 def update_run_timer(on_time):
     rt = on_time
-    print(rt)
+    # print(rt)
 
     minutes = rt // 60
     seconds = rt % 60
@@ -445,20 +445,14 @@ def display_annual_table(n, daily_avg):
     df = df.set_index(pd.DatetimeIndex(df['Date']))
     df['Date'] = df.index
 
-    # df['Date'] = pd.to_datetime(df['Date'])
-    # now = pd.Timestamp.now()
-    # td = pd.to_timedelta('24:00:00')
     today = pd.to_datetime(datetime.now().date())
-    # today = time.strftime("%Y-%m-%d")
-    print(today)
+
     t = datetime.today()
     now = datetime.now()
     # print(t)
     tts = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    # tts = dt.total_seconds()
-    # print(tts)
+
     tts = int(tts)
-    # print(tts)
 
     df['time_delta'] = pd.to_timedelta(df['time_delta'])
     df['Run'] = df['time_delta'].apply(lambda x: x.total_seconds())
@@ -466,96 +460,32 @@ def display_annual_table(n, daily_avg):
     # print(df)
     df['Off'] = np.where(df.index >= today, (tts - df['Run']), (86400 - df['Run']))
 
+    df['Pct Off'] = df['Run'].apply(lambda x: (86400 - x) / 86400)
 
-    # df['time_delta'] = df['time_delta'].apply(lambda x:strftime('%Y:%m:%d')
-    # print(df)
-    # df = pd.read_csv('../../thermotemps.txt', names=['Time', 'Temp'], parse_dates=['Time'], dtype={'Temp':'Float32'})
-    # df.set_index(df['Time'], inplace = True)
-    # df['Date'] = pd.to_datetime(df['Time'].dt.date)
-    #
-    # df['change'] = df['Temp'] - df['Temp'].shift(1)
-    # change = df['change'].iloc[-1]
-    # df['tvalue'] = df.index
-    # df['time_delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(0)
-    # df['run'] = np.where(df['change'] > .2, 'true', (np.where(df['Temp'] > 118, 'true', 'false' )))
-    # dfrt = df[['Time','time_delta','run', 'tvalue']]
-    #
-    # dfrt.columns = ['Date', 'time_delta', 'run', 'tvalue']
-    # # print(dfrt)
-    # df_run = dfrt.loc[dfrt['run'] == 'true']
-    #
-    # df_run = df_run.groupby(pd.to_datetime(df_run['Date']).dt.strftime('%m-%d'))['time_delta'].sum().reset_index()
-    #
-    # df_run['Date'] = df_run['Date'].apply(lambda x: '2021-' + x)
-    #
-    # df_run['Date'] = pd.to_datetime(df_run['Date'])
-    # df_run = df_run.set_index('Date')
-    #
-    #
-    # print(type(df['time_delta'].loc[20]))
-    #
+    df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
+
     d_avg = pd.read_json(daily_avg)
-    #
+
     d_avg['Time'] = d_avg['Time'].apply(lambda x: x / 1000)
 
     d_avg['Time'] = pd.to_datetime(d_avg['Time'], unit='s')
 
     d_avg = d_avg.set_index('Time')
     d_avg['Temp'] = d_avg['Temp'].round(1)
-    #
+
     t = datetime.today()
-    #
-    # td = t.day
-    #
-    # df['seconds'] = df['time_delta'] / 1000
-    #
-    # today_run_seconds = df['time_delta'].iloc[-1] / 1000
-    #
-    # df = df.drop('time_delta', 1)
-    # t = pd.Timestamp.now()
-    # print(t)
-    # #
-    # tts = (t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-    # tts = pd.to_timedelta(tts)
-    # print(tts)
-    #
-    # pct_on = today_tot_seconds / today_run_seconds
-    #
-    df['Pct Off'] = df['Run'].apply(lambda x: (86400 - x) / 86400)
 
-    df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
-    print(df)
-    # df['Run Time'] = df['seconds'].apply(lambda x: dt.timedelta(seconds=x))
-    # df['Run Time'] = df['Run Time'].astype(str).str[6:15]
-    # now = pd.Timestamp.now()
-    # td = pd.to_timedelta('24:00:00')
-    # print(type(td))
-
-    #
-    # df['Off Time'] = df['time_delta'].apply(lambda x: td - x)
-    # df['Off_s'] = df['Off Time'] / np.timedelta64(1, 's')
-    #
-    # # print(df.columns)
-    # df['Off_s'] = df['Off_s'].astype(int)
-    #
-    # df['Off Time'] = np.where(df.index.day == td, (tts - df['time_delta']), (td - df['time_delta']))
-    # # print(df)
     df['Off'] = df['Off'].apply(lambda x: dt.timedelta(seconds=x))
 
     df['Off'] = df['Off'].astype(str).str[6:15]
-    df.rename(columns = {'time_delta':'On Time'}, inplace=True)
-    df['On Time'] = df['On Time'].astype(str).str[6:15]
+    df.rename(columns = {'time_delta':'On'}, inplace=True)
+    df['On'] = df['On'].astype(str).str[6:15]
     df['Date'] = df['Date'].astype(str).str[6:15]
 
-    #
     df = pd.merge(df, d_avg, how = 'inner', left_index=True, right_index=True)
-    df = df.sort_values(by=['On Time'], ascending = True)
-    # df['Date'] = df.index.date
-    # # print(df)
-    df = df[['Date', 'On Time', 'Off', 'Pct Off', 'Temp']]
-    #
-    # df['Date'] = df['Date'].apply(lambda x: x.strftime('%m-%d'))
+    df = df.sort_values(by=['Off'], ascending = False)
 
+    df = df[['Date', 'On', 'Off', 'Pct Off', 'Temp']]
 
     columns=[
         {"name": i, "id": i, "selectable": True} for i in df.columns
