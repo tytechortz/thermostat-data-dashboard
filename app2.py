@@ -418,7 +418,7 @@ def current_temp(n):
 
     df_run['Date'] = pd.to_datetime(df_run['Date'])
     df_run = df_run.set_index('Date')
-    # print(df_run)
+    print(df_run)
     today_tot_seconds = int((t - t.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
     today_tot_seconds = dt.timedelta(seconds=today_tot_seconds)
     #
@@ -435,7 +435,7 @@ def current_temp(n):
     [Input('outside-interval-component', 'children'),
     Input('daily-avg', 'children')])
 def display_annual_table(n, daily_avg):
-    print(n)
+    # print(n)
     df = pd.read_csv('./export_df.csv')
 
     data_types = df.dtypes
@@ -453,6 +453,7 @@ def display_annual_table(n, daily_avg):
     tts = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
 
     tts = int(tts)
+    print(tts)
 
     df['time_delta'] = pd.to_timedelta(df['time_delta'])
     df['Run'] = df['time_delta'].apply(lambda x: x.total_seconds())
@@ -460,7 +461,12 @@ def display_annual_table(n, daily_avg):
     # print(df)
     df['Off'] = np.where(df.index >= today, (tts - df['Run']), (86400 - df['Run']))
 
-    df['Pct Off'] = df['Run'].apply(lambda x: (86400 - x) / 86400)
+    df['Pct Off'] = df['Off'].apply(lambda x: x / 86400)
+    # df['Pct Off'] = np.where(df.index >= today, ((86400 - df['Run'] / 86400) / 100000), ((tts - df['Run'] / tts) / 100000))
+
+
+    print(df)
+    # df['Pct Off'] = df['Run'].apply(lambda x: (86400 - x) / 86400)
 
     df['Pct Off'] = df['Pct Off'].astype(float).map("{:.2%}".format)
 
